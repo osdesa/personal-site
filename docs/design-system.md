@@ -107,8 +107,9 @@ copy. Pages preserve one level-one heading and a logical level hierarchy.
 
 ### Timeline entries
 
-Period, role, organisation, summary and topic tags remain grouped in one article.
-The vertical rule is decorative; semantics do not depend on it.
+Period, role, organisation, location, summary, highlights and topic tags remain
+grouped in one article. The vertical rule is decorative; semantics do not depend
+on it.
 
 ### Focus and accessibility
 

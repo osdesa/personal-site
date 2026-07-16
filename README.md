@@ -1,13 +1,12 @@
 # Personal portfolio
 
-A polished, responsive foundation for a long-term personal website and software
-engineering portfolio. The application is built in Rust with Leptos, uses a
-small typed content model, and deliberately contains clearly labelled sample
-content until real CV and project information is supplied.
+A polished, responsive personal website and software engineering portfolio.
+The application is built in Rust with Leptos and uses a small typed content
+model populated from Hayden Farrell's professional CV.
 
 ## Current status
 
-The initial-design milestone is complete. The site includes:
+The initial design and CV-content milestones are complete. The site includes:
 
 - Home, Projects, CV and accessible not-found routes
 - a fixed, non-scrolling homepage with minimal copy and no profile imagery
@@ -15,6 +14,7 @@ The initial-design milestone is complete. The site includes:
 - a permanent dark charcoal-and-grey visual system
 - reusable navigation, project, skill, timeline and layout components
 - central design tokens and typed portfolio data
+- professional experience, education, and skills sourced from the current CV
 - focused Rust tests and a production CI build
 
 Authentication, a database, CMS, blog, analytics, search, contact-form backend
@@ -130,13 +130,13 @@ boundaries without empty workspace crates or a speculative backend.
 `src/lib.rs` provides the shared crate boundary for the thin browser binary and
 the external test files in `tests/`, which are organised by responsibility.
 
-## Replacing placeholder information
+## Updating portfolio content
 
 All editable profile, social, project, skill, experience and education content
-is in [`src/content.rs`](src/content.rs). Search that file for `Example`,
-`Replace`, `placeholder`, `your-username` and `20XX` before
-publishing. Page copy that explains the sample state can then be tightened in
-`src/pages/`.
+is in [`src/content.rs`](src/content.rs). Keep the profile, experience,
+education, and skills aligned with the source CV when it changes. Project
+entries remain sample content until the later Projects-page milestone.
+Route-level framing copy remains in `src/pages/`.
 
 Update route-specific browser titles in
 [`src/routes.rs`](src/routes.rs). Update the default HTML description and title
@@ -186,7 +186,8 @@ an independent full-build run.
 
 ## Future work
 
-The recommended next milestone is content replacement: add accurate personal
-profile/CV information, real projects and the supplied CV PDF, then perform a
-content and accessibility review. Later phases can add Markdown articles, RSS,
-search, demonstrations and analytics only when their requirements are concrete.
+The recommended next milestone is browser-based visual and accessibility
+validation followed by deployment configuration for the selected host. The
+Projects page and its content are intentionally deferred for a later redesign.
+Later phases can add Markdown articles, RSS, search, demonstrations and
+analytics only when their requirements are concrete.

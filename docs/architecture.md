@@ -53,8 +53,8 @@ processes at runtime.
 ### `src/content.rs`
 
 Owns `Profile`, `SocialLink`, `Project`, `SkillGroup`, `TimelineItem` and
-`Portfolio`. Static slices make placeholder replacement obvious and type-safe.
-Pure selection and integrity behaviour is exercised by `tests/content_tests.rs`.
+`Portfolio`. Static slices keep content updates obvious and type-safe. Pure
+selection and integrity behaviour is exercised by `tests/content_tests.rs`.
 
 ### `src/lib.rs` and `src/main.rs`
 
@@ -111,6 +111,7 @@ than browser markup snapshots:
 
 - valid and unique project identifiers
 - required content and HTTPS project links
+- complete CV sections and absence of placeholder markers
 - featured-project selection
 - unique internal routes and page titles
 

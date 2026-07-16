@@ -18,7 +18,7 @@ pub fn CvPage() -> impl IntoView {
             <Container>
                 <div class="cv-heading">
                     <div>
-                        <p class="eyebrow">"Curriculum vitae / Sample content"</p>
+                        <p class="eyebrow">"Curriculum vitae"</p>
                         <h1>{profile.name}</h1>
                         <p class="page-hero__lead">{profile.headline}</p>
                     </div>
@@ -49,10 +49,9 @@ pub fn CvPage() -> impl IntoView {
                     <aside>
                         <p class="eyebrow">"Summary"</p>
                         <p>{profile.summary}</p>
-                        <p class="placeholder-note">"Placeholder: replace all CV text in src/content.rs before publishing."</p>
                     </aside>
                     <div>
-                        <SectionHeading eyebrow="01 / Experience" title="Professional experience" />
+                        <SectionHeading eyebrow="Career" title="Professional experience" />
                         <div class="timeline">{content.experience.iter().map(|item| view! { <TimelineEntry item=*item /> }).collect_view()}</div>
                     </div>
                 </div>
@@ -62,7 +61,7 @@ pub fn CvPage() -> impl IntoView {
         <section class="section section--surface cv-section">
             <Container>
                 <div class="cv-layout">
-                    <SectionHeading eyebrow="02 / Education" title="Education" />
+                    <SectionHeading eyebrow="Academic background" title="Education" />
                     <div class="timeline">{content.education.iter().map(|item| view! { <TimelineEntry item=*item /> }).collect_view()}</div>
                 </div>
             </Container>
@@ -71,7 +70,7 @@ pub fn CvPage() -> impl IntoView {
         <section class="section cv-section">
             <Container>
                 <div class="cv-layout">
-                    <SectionHeading eyebrow="03 / Skills" title="Technical skills" />
+                    <SectionHeading eyebrow="Capabilities" title="Technical skills" />
                     <div class="skill-groups skill-groups--cv">
                         {content.skills.iter().map(|group| view! {
                             <article class="skill-group">

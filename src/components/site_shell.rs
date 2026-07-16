@@ -95,7 +95,7 @@ pub fn SiteShell(children: Children) -> impl IntoView {
                 </div>
             </div>
             <div class="container site-footer__base">
-                <p>{format!("© 2026 {}. Placeholder content is clearly labelled.", profile.name)}</p>
+                <p>{format!("© 2026 {}.", profile.name)}</p>
                 <p class="site-footer__status"><span aria-hidden="true"></span>"Built for the long term"</p>
             </div>
         </footer>

@@ -1,7 +1,7 @@
 //! Central, type-safe portfolio content.
 //!
-//! Replace the clearly marked sample values in [`portfolio`] with real personal
-//! information. Presentation components deliberately do not own content.
+//! Presentation components deliberately do not own content. Update this module
+//! when professional details, projects, or the downloadable CV change.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Profile {
@@ -48,8 +48,10 @@ pub struct SkillGroup {
 pub struct TimelineItem {
     pub title: &'static str,
     pub organisation: &'static str,
+    pub location: &'static str,
     pub period: &'static str,
     pub summary: &'static str,
+    pub highlights: &'static [&'static str],
     pub tags: &'static [&'static str],
 }
 
@@ -127,45 +129,101 @@ const PROJECTS: &[Project] = &[
 const SKILLS: &[SkillGroup] = &[
     SkillGroup {
         category: "Languages",
-        summary: "Replace this sample group with languages you use confidently.",
-        skills: &["Rust", "TypeScript", "Python", "SQL"],
+        summary: "Programming languages and build languages used across systems, embedded, academic, and tooling work.",
+        skills: &[
+            "C++",
+            "C",
+            "Python",
+            "Java",
+            "MATLAB",
+            "VHDL",
+            "ARM",
+            "Rust",
+            "Shell scripting",
+            "CMake",
+        ],
     },
     SkillGroup {
-        category: "Engineering",
-        summary: "Example disciplines that can be adjusted to match your experience.",
-        skills: &["System design", "Testing", "APIs", "Accessibility"],
+        category: "Libraries",
+        summary: "Graphics, GPU compute, and web libraries used to build technical applications.",
+        skills: &["OpenGL", "Vulkan", "Flask"],
     },
     SkillGroup {
-        category: "Tools & platforms",
-        summary: "Keep only tools that reflect your real working knowledge.",
-        skills: &["Git", "Linux", "Docker", "GitHub Actions"],
+        category: "Tools & practices",
+        summary: "Development, continuous integration, and safety-critical engineering tools and practices.",
+        skills: &[
+            "Git",
+            "Docker",
+            "VS Code",
+            "Visual Studio",
+            "IntelliJ",
+            "Jenkins",
+            "MISRA",
+            "Polyspace",
+        ],
+    },
+    SkillGroup {
+        category: "Training & certificates",
+        summary: "Formal training supporting safety-critical and modern C++ development.",
+        skills: &["DO-178C certified", "C++ training"],
+    },
+    SkillGroup {
+        category: "Interests",
+        summary: "Interests outside day-to-day software engineering.",
+        skills: &["Climbing & bouldering", "Leadership", "Drones"],
     },
 ];
 
 const EXPERIENCE: &[TimelineItem] = &[
     TimelineItem {
-        title: "Example software engineering role",
-        organisation: "Replace with organisation",
-        period: "20XX — Present",
-        summary: "Sample copy: describe the scope of the role, the systems you helped improve and the evidence that best demonstrates your contribution.",
-        tags: &["Ownership", "Collaboration", "Delivery"],
+        title: "Part-time Software Engineer",
+        organisation: "Leonardo UK",
+        location: "Newcastle upon Tyne, UK · Remote",
+        period: "July 2026 — Present",
+        summary: "One of three undergraduate software engineers offered a part-time role while returning to university.",
+        highlights: &[
+            "Develop safety-critical real-time software as part of an Agile engineering team while completing a Computer Science degree.",
+            "Balance university and work commitments to meet deadlines across both roles.",
+            "Maintain and monitor Jenkins CI pipelines to support reliable build and test execution alongside ongoing development.",
+        ],
+        tags: &["Real-time software", "Jenkins", "Agile", "CI"],
     },
     TimelineItem {
-        title: "Example earlier role or placement",
-        organisation: "Replace with organisation",
-        period: "20XX — 20XX",
-        summary: "Sample copy: explain what you learned, how you worked with others and which technical responsibilities are most relevant now.",
-        tags: &["Learning", "Quality", "Teamwork"],
+        title: "Industrial Placement Software Engineer",
+        organisation: "Leonardo UK",
+        location: "Newcastle upon Tyne, UK",
+        period: "June 2025 — July 2026",
+        summary: "Developed and maintained safety-critical real-time software within an Agile engineering team following DO-178C development practices.",
+        highlights: &[
+            "Led the design and implementation of a C++ synthetic testing framework for complex embedded software, reducing dependency on hardware integration during development.",
+            "Led design workshops with more than 10 engineers, including principal and lead engineers, to gather requirements and validate the software design.",
+            "Developed a custom test application used by more than 10 engineers across teams for rapid developer testing of a complex engineering system.",
+            "Created a tool for visualising large volumes of real-time mathematical data, enabling faster analysis of complex engineering systems.",
+        ],
+        tags: &["C++", "DO-178C", "Embedded systems", "Developer tooling"],
     },
 ];
 
-const EDUCATION: &[TimelineItem] = &[TimelineItem {
-    title: "Example degree or qualification",
-    organisation: "Replace with institution",
-    period: "20XX — 20XX",
-    summary: "Sample copy: add the real subject, classification where appropriate, and a concise note about relevant study or a major project.",
-    tags: &["Computer science", "Software engineering"],
-}];
+const EDUCATION: &[TimelineItem] = &[
+    TimelineItem {
+        title: "BSc Computer Science with a Year in Industry",
+        organisation: "University of Nottingham",
+        location: "Nottingham, UK",
+        period: "August 2023 — May 2027",
+        summary: "Predicted First-Class Honours, including an industrial placement year in software engineering.",
+        highlights: &[],
+        tags: &["Computer Science", "Predicted First-Class Honours"],
+    },
+    TimelineItem {
+        title: "A levels",
+        organisation: "Aquinas College",
+        location: "Manchester, UK",
+        period: "August 2021 — May 2023",
+        summary: "Mathematics (A), Computer Science (A), and Further Mathematics (A).",
+        highlights: &[],
+        tags: &["Mathematics", "Computer Science", "Further Mathematics"],
+    },
+];
 
 /// Returns all editable site content from one obvious source.
 pub const fn portfolio() -> Portfolio {
@@ -175,11 +233,11 @@ pub const fn portfolio() -> Portfolio {
             initials: "HF",
             role: "Software Engineer",
             eyebrow: "Portfolio",
-            headline: "Software engineer building dependable, thoughtful digital products.",
-            home_intro: "Software engineer and computer science student.",
-            summary: "I care about clear systems, accessible interfaces and software that remains easy to change. This polished foundation is ready for your real story.",
-            location: "Your location • Replace me",
-            availability: "Availability status • Replace me",
+            headline: "Software engineer building dependable real-time systems and developer tooling.",
+            home_intro: "Computer Science student and part-time software engineer working across safety-critical systems, C++, and GPU computing.",
+            summary: "I build safety-critical real-time software at Leonardo UK while studying Computer Science at the University of Nottingham. My experience spans embedded C++, developer tooling, continuous integration, GPU compute, and testing infrastructure, with an emphasis on dependable systems and practical engineering outcomes.",
+            location: "United Kingdom",
+            availability: "Graduating May 2027",
             email: "haydenfarrell@outlook.com",
             cv_download_url: Some("/cv/Hayden-Farrell-CV.pdf"),
         },
