@@ -163,16 +163,26 @@ update `profile.cv_download_url` in `src/content.rs` at the same time.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs for pull requests and pushes to `main`. It caches
-Cargo and npm data, installs pinned frontend tooling, builds CSS, checks
-formatting, denies Clippy warnings, runs all tests, performs a native release
-build and creates the production WebAssembly bundle.
+`.github/workflows/ci.yml` uses two event-specific paths:
+
+- Open pull requests targeting `main` run the shorter Rust quality suite on
+  creation, reopening, becoming ready for review and new commits: formatting,
+  Clippy and tests. Feature-branch pushes without an open pull request do not
+  start CI.
+- Every commit pushed or merged into `main` runs the complete pipeline: pinned
+  frontend tooling, CSS generation, formatting, Clippy, tests, a native release
+  build and the production WebAssembly bundle.
+
+Cargo and npm build data are cached where those tools are used. Pull request
+runs supersede stale runs for the same pull request, while each `main` commit has
+an independent full-build run.
 
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) describes the implemented boundaries and data flow.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
+- [`docs/adr/0002-event-specific-ci.md`](docs/adr/0002-event-specific-ci.md) records the event-specific CI strategy.
 
 ## Future work
 
