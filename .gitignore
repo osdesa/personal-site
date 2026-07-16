@@ -1,0 +1,27 @@
+/target/
+/dist/
+/node_modules/
+/styles/generated.css
+
+# Local AI assistant configuration
+/AGENTS.md
+/.codex/
+/.claude/
+/CLAUDE.md
+/.cursor/
+/.cursorrules
+/.aider*
+/GEMINI.md
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

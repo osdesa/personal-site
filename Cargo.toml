@@ -1,0 +1,19 @@
+[package]
+name = "personal-site"
+version = "0.1.0"
+edition = "2024"
+description = "A responsive personal portfolio built with Rust and Leptos"
+license = "MIT"
+publish = false
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+leptos = { version = "0.8.15", features = ["csr"] }
+leptos_meta = "0.8.5"
+leptos_router = "0.8.11"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+strip = true
