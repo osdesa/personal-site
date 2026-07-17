@@ -10,6 +10,7 @@ const categories = ["performance", "accessibility", "best-practices", "seo"];
 const reportDirectory = resolve(".lighthouseci");
 const staticDirectory = resolve("dist");
 const lighthouseCli = resolve("node_modules/lighthouse/cli/index.js");
+const chromeFlags = ["--no-sandbox", "--disable-dev-shm-usage"];
 const budgets = {
   performance: 0.9,
   accessibility: 1,
@@ -87,6 +88,7 @@ function runLighthouse(url, reportPath) {
     `--only-categories=${categories.join(",")}`,
     "--output=json",
     `--output-path=${reportPath}`,
+    `--chrome-flags=${chromeFlags.join(" ")}`,
     "--quiet",
   ];
 
