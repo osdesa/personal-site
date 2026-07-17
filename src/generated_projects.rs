@@ -42,7 +42,7 @@ pub const PROJECTS: &[Project] = &[
             "Created reusable vector, matrix, collision, camera, shader, texture, and buffer abstractions.",
             "Developed an in-game user interface and text rendering system using FreeType.",
         ],
-        image_url: "https://i.ytimg.com/vi/IdpWtqGbYhI/hqdefault.jpg",
+        image_url: "/images/project-default.svg",
         repository_url: Some("https://github.com/osdesa/Blocky"),
         demo_url: Some("https://youtu.be/IdpWtqGbYhI"),
     },

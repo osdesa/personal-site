@@ -156,7 +156,7 @@ date = "2026-05-04"
 status = "Active"
 technologies = ["Rust", "WebAssembly"]
 highlights = ["Deterministic output"]
-image = "https://example.com/project.webp"
+image = "/images/project-default.svg"
 demo_url = "https://example.com/demo"
 show_repository = false
 "#,
@@ -174,11 +174,25 @@ show_repository = false
     assert_eq!(project.status.as_deref(), Some("Active"));
     assert_eq!(project.technologies, ["Rust", "WebAssembly"]);
     assert_eq!(project.highlights, ["Deterministic output"]);
+    assert_eq!(project.image_url, "/images/project-default.svg");
     assert_eq!(
         project.demo_url.as_deref(),
         Some("https://example.com/demo")
     );
     assert!(project.repository_url.is_none());
+}
+
+#[test]
+fn remote_project_images_fall_back_to_controlled_artwork() {
+    let metadata = parse_portfolio_metadata(r#"image = "https://example.com/project.webp""#)
+        .expect("optional remote metadata must not break synchronization");
+    let projects = normalize_projects(
+        vec![(repository("osdesa/example-name", "2024-01-02"), metadata)],
+        4,
+    )
+    .unwrap();
+
+    assert_eq!(projects[0].image_url, "/images/project-default.svg");
 }
 
 #[test]

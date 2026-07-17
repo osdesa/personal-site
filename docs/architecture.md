@@ -65,7 +65,9 @@ remote result reaches the checked-in artifact.
 
 ## Runtime flow
 
-1. Trunk loads `index.html`, the generated stylesheet and the compiled Wasm.
+1. Trunk loads `index.html`, the generated stylesheet, controlled local image
+   assets and the compiled Wasm. The initial document has only truthful
+   site-wide crawler metadata because the application is CSR.
 2. The thin `main.rs` binary imports `App` from the library crate and mounts it
    into the document body.
 3. `App` provides metadata context, starts `Router`, and wraps routes in
@@ -74,8 +76,8 @@ remote result reaches the checked-in artifact.
    `generated_cv::CV`, and the shared static project slice from
    `generated_projects::PROJECTS`.
 
-There are no network requests, environment variables, credentials or server
-processes in the deployed website runtime. The separate native `sync-cv` and
+There are no runtime data requests, environment variables, credentials or
+server processes in the deployed website runtime. The separate native `sync-cv` and
 `sync-projects` tools use GitHub only during local or scheduled maintenance.
 
 ## Module responsibilities
@@ -105,9 +107,12 @@ modules. `main.rs` only installs the panic hook and mounts `App`.
 
 ### `src/routes.rs`
 
-Defines public navigation paths, labels and page-title mapping. Navigation and
-tests share the same metadata; Leptos route declarations remain explicit in
-`app.rs` so each view is visible at the application boundary.
+Defines public navigation paths, labels, titles and descriptions. Navigation,
+browser metadata and tests share the same route metadata; Leptos route
+declarations remain explicit in `app.rs` so each view is visible at the
+application boundary. The static `index.html` is intentionally only a
+site-wide crawler/share fallback; route-specific metadata appears after Wasm
+mounting and does not promise route-specific social previews.
 
 ### `src/components/`
 
@@ -117,6 +122,7 @@ Contains narrowly scoped reusable site-wide components:
 - site shell: header, responsive inert navigation, skip link, main-focus
   restoration after mobile navigation and footer
 - project cards
+- origin-independent structured data generated from public CV identity
 
 Components accept small typed values rather than broad configuration objects.
 Links remain native anchors or router anchors.
@@ -133,7 +139,9 @@ colour or spacing systems; they use shared component classes and design tokens.
 
 Is the single styling source. Tailwind 4 supplies its build pipeline and token
 utilities; semantic CSS variables implement the permanent dark palette and reusable
-component rules. `styles/generated.css` is generated and ignored.
+component rules. `styles/generated.css` is generated and ignored. Local project
+imagery reserves its aspect ratio and uses explicit dimensions so failed or
+slow artwork cannot move written card content.
 
 ### `src/cv.rs` and `src/generated_cv.rs`
 
@@ -227,6 +235,12 @@ home, projects, CV and not-found routes with axe, and checks the mobile menu's
 keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
 workflow repeats the native quality suite before opening an artifact update pull
 request.
+
+The repository-owned Lighthouse runner separately serves `dist/` as a local SPA
+after the release build, audits the three public routes three times, and
+enforces median category, transfer-size and layout-shift budgets. It is a
+development/CI dependency only; no Lighthouse, analytics or third-party script
+enters the browser runtime.
 
 ## Extension points
 

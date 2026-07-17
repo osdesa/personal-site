@@ -43,7 +43,7 @@ highlights = [
   "A concrete result or engineering decision.",
   "Another concise, publicly shareable point.",
 ]
-image = "https://example.com/project.webp"
+image = "/images/project-default.svg"
 demo_url = "https://example.com/demo"
 show_repository = true
 include_archived = false
@@ -64,14 +64,16 @@ public when generated, so metadata must contain only publishable information.
 - technologies: metadata list, otherwise topics followed by primary language
 - date: metadata `date`, then GitHub creation date
 - demo: metadata `demo_url`, then repository homepage
-- image: metadata `image`, then `/images/project-default.svg`
+- image: controlled local metadata `image`, then `/images/project-default.svg`
 - repository link: GitHub URL for public repositories, hidden for private
   repositories, with `show_repository` as an explicit override
 - visibility: GitHub's authenticated public/private value
 
 Blank optional values are omitted. Technology and highlight lists are trimmed
-and deduplicated case-insensitively. HTTPS is required for remote repository,
-demo and image URLs; a root-relative image path is also accepted.
+and deduplicated case-insensitively. HTTPS is required for remote repository
+and demo URLs. Only image values that reference a controlled root-relative
+`/images/` asset are emitted; other optional image values fall back to the
+default artwork so generated pages do not depend on remote artwork.
 
 Archived repositories and forks are excluded unless their own metadata opts
 them in. Projects are sorted newest-first by effective portfolio date, then

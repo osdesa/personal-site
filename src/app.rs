@@ -5,7 +5,7 @@ use leptos_router::{
     path,
 };
 
-use crate::components::SiteShell;
+use crate::components::{SiteShell, StructuredData};
 use crate::pages::{CvPage, HomePage, NotFoundPage, ProjectsPage};
 
 #[component]
@@ -13,6 +13,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
+        <StructuredData />
         <Router>
             <SiteShell>
                 <Routes fallback=NotFoundPage>

@@ -4,11 +4,35 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
+      id="site-description"
       name="description"
       content="Hayden Farrell - software engineer, selected projects and professional CV."
     />
     <meta name="theme-color" content="#111214" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!--
+      This is deliberately site-wide metadata. The app is client-side rendered,
+      so crawlers that do not execute WebAssembly see this document for every
+      route. A canonical origin has not been selected; canonical, og:url and
+      og:image values must remain absent until absolute URLs can be generated.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Hayden Farrell" />
+    <meta property="og:title" content="Hayden Farrell | Software Engineer" />
+    <meta
+      property="og:description"
+      content="Hayden Farrell - software engineer, selected projects and professional CV."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Hayden Farrell | Software Engineer" />
+    <meta
+      name="twitter:description"
+      content="Hayden Farrell - software engineer, selected projects and professional CV."
+    />
     <link data-trunk rel="css" href="styles/generated.css" />
+    <link data-trunk rel="copy-file" href="public/favicon.svg" />
+    <link data-trunk rel="copy-dir" href="public/images" data-target-path="images" />
     <link
       data-trunk
       rel="copy-file"

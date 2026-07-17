@@ -18,7 +18,15 @@ pub fn ProjectCard(project: Project, #[prop(optional)] index: usize) -> impl Int
         <article class="project-card">
             <div class="project-card__visual" aria-hidden="true">
                 <span class="project-card__number">{number}</span>
-                <img class="project-card__image" src=project.image_url alt="" loading="lazy" />
+                <img
+                    class="project-card__image"
+                    src=project.image_url
+                    alt=""
+                    width="608"
+                    height="272"
+                    loading="lazy"
+                    decoding="async"
+                />
                 <span class="project-card__grid"></span>
             </div>
             <div class="project-card__body">
