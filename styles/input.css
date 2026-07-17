@@ -201,6 +201,10 @@ h3 {
   flex-shrink: 0;
 }
 
+.site-header .brand {
+  grid-template-columns: auto;
+}
+
 .brand__mark {
   display: grid;
   width: 2.65rem;
@@ -485,10 +489,6 @@ h3 {
   padding: 0;
   margin: 0;
   list-style: none;
-}
-
-.home-projects {
-  border-top: 1px solid var(--border);
 }
 
 .home-socials a {
@@ -1055,11 +1055,7 @@ h3 {
 .brand--footer {
   width: fit-content;
   margin-bottom: 1.2rem;
-  grid-template-columns: 2.65rem auto;
-}
-
-.brand--footer .brand__mark {
-  grid-row: auto;
+  grid-template-columns: auto;
 }
 
 .site-footer__grid > div:first-child > p {

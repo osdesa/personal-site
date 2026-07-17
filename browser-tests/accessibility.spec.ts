@@ -54,7 +54,7 @@ test("written project content remains available when a project image fails", asy
   await page.route("**/images/project-default.svg", (route) => route.abort("failed"));
   await page.goto("/projects");
 
-  await expect(page.getByRole("heading", { name: /selected projects/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Personal Website" })).toBeVisible();
 });
 

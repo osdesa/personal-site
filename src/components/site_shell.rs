@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 
 use crate::content::portfolio;
-use crate::cv_presentation::RichTextView;
+use crate::cv::SocialPlatform;
 use crate::generated_cv::CV as GENERATED_CV;
 use crate::routes::{HOME, NAVIGATION_ROUTES};
 
@@ -11,8 +11,6 @@ pub fn SiteShell(children: Children) -> impl IntoView {
     let (menu_open, set_menu_open) = signal(false);
     let site_profile = portfolio().profile;
     let imported_profile = &GENERATED_CV.profile;
-    let header_initials = initials(&imported_profile.full_name);
-    let footer_initials = header_initials.clone();
 
     view! {
         <a
@@ -28,7 +26,6 @@ pub fn SiteShell(children: Children) -> impl IntoView {
         <header class="site-header">
             <div class="container site-header__inner">
                 <A href=HOME.path attr:class="brand" attr:aria-label="Go to homepage">
-                    <span class="brand__mark" aria-hidden="true">{header_initials}</span>
                     <span class="brand__name">{imported_profile.full_name.as_ref()}</span>
                     <span class="brand__role">{site_profile.role}</span>
                 </A>
@@ -90,7 +87,6 @@ pub fn SiteShell(children: Children) -> impl IntoView {
             <div class="container site-footer__grid">
                 <div>
                     <A href=HOME.path attr:class="brand brand--footer" attr:aria-label="Go to homepage">
-                        <span class="brand__mark" aria-hidden="true">{footer_initials}</span>
                         <span class="brand__name">{imported_profile.full_name.as_ref()}</span>
                     </A>
                     <p>"Software engineering, selected projects and professional experience."</p>
@@ -106,17 +102,25 @@ pub fn SiteShell(children: Children) -> impl IntoView {
                 <div>
                     <p class="footer-heading">"Connect"</p>
                     <ul>
-                        {imported_profile.social_links.iter().map(|link| view! {
+                        <li>
+                            <a href=format!("mailto:{}", imported_profile.contact.email)>"Email"</a>
+                        </li>
+                        {imported_profile.social_links.iter().filter(|link| link.platform == SocialPlatform::LinkedIn).map(|link| view! {
                             <li>
                                 <a href=link.url.as_ref() target="_blank" rel="noreferrer">
-                                    <RichTextView text=&link.label />
+                                    "LinkedIn"
                                     <span class="sr-only">" (opens in a new tab)"</span>
                                 </a>
                             </li>
                         }).collect_view()}
-                        <li>
-                            <a href=format!("mailto:{}", imported_profile.contact.email)>"Email"</a>
-                        </li>
+                        {imported_profile.social_links.iter().filter(|link| link.platform == SocialPlatform::GitHub).map(|link| view! {
+                            <li>
+                                <a href=link.url.as_ref() target="_blank" rel="noreferrer">
+                                    "GitHub"
+                                    <span class="sr-only">" (opens in a new tab)"</span>
+                                </a>
+                            </li>
+                        }).collect_view()}
                     </ul>
                 </div>
             </div>
@@ -148,11 +152,3 @@ fn focus_main_content() {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn focus_main_content() {}
-
-fn initials(full_name: &str) -> String {
-    full_name
-        .split_whitespace()
-        .filter_map(|part| part.chars().next())
-        .take(2)
-        .collect()
-}

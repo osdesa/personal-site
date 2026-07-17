@@ -64,11 +64,10 @@ fn project_with_all_links_suppressed_does_not_render_an_empty_link_group() {
 }
 
 #[test]
-fn home_and_projects_pages_consume_the_generated_catalogue() {
+fn only_projects_page_consumes_the_generated_catalogue() {
     let home_source = include_str!("../src/pages/home.rs");
     let projects_source = include_str!("../src/pages/projects.rs");
-    assert!(home_source.contains("generated_projects::PROJECTS"));
+    assert!(!home_source.contains("generated_projects::PROJECTS"));
     assert!(projects_source.contains("generated_projects::PROJECTS"));
-    assert!(!home_source.contains("example projects"));
     assert!(!projects_source.contains("src/content.rs"));
 }

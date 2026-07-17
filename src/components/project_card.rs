@@ -39,7 +39,7 @@ pub fn ProjectCard(project: Project, #[prop(optional)] index: usize) -> impl Int
                         <span>{status}</span>
                     })}
                 </div>
-                <h3>{project.title}</h3>
+                <h2>{project.title}</h2>
                 <p>{project.summary}</p>
                 <div class="skill-list" aria-label="Technologies used">
                     {project.technologies.iter().map(|skill| view! { <SkillBadge skill=*skill /> }).collect_view()}
