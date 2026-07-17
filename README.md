@@ -10,7 +10,7 @@ The initial design and automated CV presentation milestones are complete. The
 site includes:
 
 - Home, Projects, CV and accessible not-found routes
-- a fixed, non-scrolling homepage with minimal copy and no profile imagery
+- a focused homepage with generated selected projects and no profile imagery
 - responsive desktop, tablet and mobile layouts
 - a permanent dark charcoal-and-grey visual system
 - reusable navigation, project, CV-timeline, safe-rich-text and layout components
@@ -19,6 +19,8 @@ site includes:
   visible source provenance
 - a transactional daily CV source/PDF importer with immutable provenance,
   strict LaTeX parsing and generated static Rust data
+- daily authenticated GitHub project synchronization with private-repository
+  support, strict optional overrides and deterministic generated Rust data
 - focused Rust tests and a production CI build
 
 Authentication, a database, CMS, blog, analytics, search, contact-form backend
@@ -98,6 +100,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test --all-targets --all-features
 cargo build --release
 cargo build --release --features cv-sync --bin sync-cv
+cargo build --release --features project-sync --bin sync-projects
 npm run css:build
 trunk build --release
 ```
@@ -112,21 +115,24 @@ not contain inline `#[cfg(test)]` sections.
 
 ```text
 .
-├── .github/workflows/         # CI and scheduled CV synchronization
+├── .github/workflows/         # CI and scheduled content synchronization
 ├── docs/                       # Architecture, design system and ADRs
 ├── public/                     # Static files copied into the bundle
 ├── src/
 │   ├── app.rs                  # Router composition
 │   ├── components/             # Reusable presentation components
-│   ├── content.rs              # Non-CV editorial and portfolio content
+│   ├── content.rs              # Homepage-specific editorial content
 │   ├── cv.rs                   # Imported CV domain model and safe rich text
 │   ├── cv_presentation.rs      # Generated CV Leptos presentation
 │   ├── cv_sync/                # Native CV import/synchronization boundaries
 │   ├── generated_cv.rs         # Transactionally generated static CV data
+│   ├── generated_projects.rs   # Atomically generated static project data
+│   ├── project_sync/           # Native project synchronization boundaries
+│   ├── projects.rs             # Portfolio project presentation domain
 │   ├── lib.rs                  # Shared library boundary for app and tests
 │   ├── pages/                  # Route-level views
 │   ├── routes.rs               # Canonical public route metadata
-│   ├── bin/sync_cv.rs          # Native synchronization CLI
+│   ├── bin/                    # Native CV and project synchronization CLIs
 │   └── main.rs                 # Browser application entry point
 ├── styles/input.css            # Tokens and component styling source
 ├── tests/                      # All Rust tests, including unit-style tests
@@ -149,9 +155,9 @@ generated model for document fidelity but are intentionally not displayed on
 the CV page because `/projects` is the dedicated project presentation. The
 generated file is automation-owned; do not edit it or copy its values into page
 components. [`src/content.rs`](src/content.rs) contains only non-CV homepage
-copy and the separate Projects-page catalogue. Project entries remain sample
-content until the later Projects-page milestone. Route-level framing copy
-remains in `src/pages/`.
+copy. [`src/generated_projects.rs`](src/generated_projects.rs) is the single
+source of truth for both project presentation surfaces and must not be edited
+by hand. Route-level framing copy remains in `src/pages/`.
 
 Extend CV presentation in
 [`src/cv_presentation.rs`](src/cv_presentation.rs) by composing the existing
@@ -163,18 +169,26 @@ Update route-specific browser titles in
 [`src/routes.rs`](src/routes.rs). Update the default HTML description and title
 in `index.html` as a no-Wasm fallback.
 
-### Adding a project
+### Synchronizing portfolio projects
 
-Add one `Project` value to the `PROJECTS` slice in `src/content.rs`:
+GitHub's GraphQL user-list API makes the named `portfolio` starred list the
+primary source of truth. The `portfolio` repository topic and the seeded
+allowlist in `portfolio-projects.toml` are ordered fallbacks. A daily
+authenticated workflow reads public and private
+repository metadata plus optional `.github/portfolio.toml` overrides, excludes
+archives and forks by default, sorts by portfolio/creation date, keeps four,
+and atomically generates `src/generated_projects.rs`.
 
-- use a unique lowercase, hyphenated `id`
-- provide a concise title and description
-- add at least one technology
-- provide an HTTPS repository URL
-- set optional demo and image URLs to `None` when absent
-- use `featured: true` only for projects that should receive featured metadata
+The `PORTFOLIO_GITHUB_TOKEN` Actions secret needs fine-grained Starring,
+Metadata and Contents read access. Run the synchronization manually with:
 
-The integrity tests catch duplicate/invalid identifiers and incomplete links.
+```text
+cargo run --locked --release --features project-sync --bin sync-projects -- --root .
+```
+
+See [`docs/project-import.md`](docs/project-import.md) for selection, private
+repository publication, metadata fields, token setup, ordering and fallback
+rules.
 
 ### Synchronizing the CV source release
 
@@ -218,6 +232,11 @@ It executes the release synchronizer, runs formatting, Clippy, tests and a
 release tool build, then creates or updates `automation/cv-sync` only when the
 validated bundle differs. It never pushes source artifacts directly to `main`.
 
+`.github/workflows/sync-projects.yml` runs daily at 05:41 UTC and on manual
+dispatch. It requires `PORTFOLIO_GITHUB_TOKEN`, preserves the current generated
+catalogue on any failure, validates the repository, and opens or updates the
+`automation/project-sync` pull request only when output differs.
+
 Cargo and npm build data are cached where those tools are used. Pull request
 runs supersede stale runs for the same pull request, while each `main` commit has
 an independent full-build run.
@@ -226,15 +245,17 @@ an independent full-build run.
 
 - [`docs/architecture.md`](docs/architecture.md) describes the implemented boundaries and data flow.
 - [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 presentation contract.
+- [`docs/project-import.md`](docs/project-import.md) documents authenticated project selection, metadata and operation.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
 - [`docs/adr/0002-event-specific-ci.md`](docs/adr/0002-event-specific-ci.md) records the event-specific CI strategy.
 - [`docs/adr/0003-transactional-cv-synchronization.md`](docs/adr/0003-transactional-cv-synchronization.md) records the CV provenance and transaction design.
 - [`docs/adr/0004-generated-rust-cv-data.md`](docs/adr/0004-generated-rust-cv-data.md) records the generated Rust representation decision.
 - [`docs/adr/0005-generated-cv-presentation.md`](docs/adr/0005-generated-cv-presentation.md) records the direct generated-data presentation decision.
+- [`docs/adr/0006-generated-github-projects.md`](docs/adr/0006-generated-github-projects.md) records build-time GitHub project generation.
 
 ## Future work
 
-Provider-specific deployment configuration remains future work. The Projects
-page redesign, Markdown articles, RSS, search, demonstrations and analytics are
+Provider-specific deployment configuration remains future work. Markdown
+articles, RSS, search, richer demonstrations and analytics are
 deferred until their requirements are concrete.

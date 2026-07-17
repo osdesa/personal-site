@@ -428,35 +428,15 @@ h3 {
   color: var(--accent);
 }
 
-/* Fixed home page */
-body:has(.home-page) {
-  overflow: hidden;
-}
-
-body:has(.home-page) .site-footer {
-  display: none;
-}
-
-body:has(.home-page)::before {
-  display: none;
-}
-
-body:has(.home-page) main {
-  height: calc(100dvh - var(--header-height) - 1px);
-}
-
 .home-page {
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
+  min-height: calc(100dvh - var(--header-height) - 1px);
   background: linear-gradient(135deg, var(--surface-canvas), color-mix(in srgb, var(--surface-canvas) 91%, var(--accent)));
 }
 
 .home-page__inner {
   position: relative;
   display: flex;
-  height: 100%;
-  min-height: 0;
+  min-height: calc(100dvh - var(--header-height) - 1px);
   flex-direction: column;
   justify-content: center;
   padding-block: clamp(2rem, 6vh, 4rem);
@@ -504,6 +484,10 @@ body:has(.home-page) main {
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+.home-projects {
+  border-top: 1px solid var(--border);
 }
 
 .home-socials a {
@@ -631,6 +615,15 @@ body:has(.home-page) main {
   color: var(--text-secondary);
 }
 
+.project-card__highlights {
+  display: grid;
+  gap: 0.55rem;
+  padding-left: 1.15rem;
+  margin: 1.5rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
 .timeline-entry__highlights {
   display: grid;
   gap: 0.75rem;
@@ -681,6 +674,12 @@ body:has(.home-page) main {
 .project-card__links a:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.project-card__private {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
 }
 
 /* Skills, timeline and connective sections */

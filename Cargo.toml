@@ -16,9 +16,15 @@ name = "sync-cv"
 path = "src/bin/sync_cv.rs"
 required-features = ["cv-sync"]
 
+[[bin]]
+name = "sync-projects"
+path = "src/bin/sync_projects.rs"
+required-features = ["project-sync"]
+
 [features]
 default = []
 cv-sync = []
+project-sync = []
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
@@ -37,6 +43,7 @@ serde_json = "1.0.149"
 sha2 = "0.11.0"
 tempfile = "3.27.0"
 thiserror = "2.0.18"
+toml = "0.9.11"
 ureq = { version = "3.3.0", features = ["json"] }
 
 [profile.release]

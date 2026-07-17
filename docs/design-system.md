@@ -10,9 +10,10 @@ effects.
 The site uses one permanent dark appearance. It has no selector, light-mode
 token set or browser theme persistence.
 
-The homepage is a fixed single-viewport introduction: oversized name, one-line
-role and summary, two actions, and plain professional links over a restrained
-gradient. It contains no decorative or profile imagery and does not scroll.
+The homepage opens with a viewport-scale introduction: oversized name,
+one-line role and summary, two actions, and plain professional links over a
+restrained gradient. A separate section below presents the generated project
+catalogue. The page contains no profile imagery.
 
 ## Tokens
 
@@ -74,8 +75,8 @@ The design responds by content needs rather than device names:
   footer arrangement
 - at 23rem: the wordmark label hides to protect narrow layouts
 
-The fixed homepage uses additional height queries to reduce type size and
-supporting text on short viewports. Interior pages remain scrollable.
+The homepage hero uses additional height queries to reduce type size and
+supporting text on short viewports.
 
 All grids use `minmax(0, ...)`, flexible wrapping and bounded containers to
 prevent horizontal overflow. Controls retain comfortable touch targets.
@@ -96,9 +97,10 @@ non-interactive elements with `aria-disabled`, never clickable placeholders.
 
 ### Project cards
 
-Cards contain a consistent technical visual, sample/featured metadata, heading,
-description, technology badges and explicit links. Optional links are omitted,
-not disabled. Featured state remains presentation metadata on the projects page.
+Cards contain artwork, visibility/date/status metadata, heading, summary,
+technology badges, optional highlights and explicit repository/demo links.
+Optional elements are omitted rather than rendered empty. A hidden private
+repository uses a clear non-link indicator.
 
 ### Section headings
 
