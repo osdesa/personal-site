@@ -1,11 +1,10 @@
 use leptos::prelude::*;
 use leptos_meta::{Meta, Title};
 
-use crate::components::{ButtonLink, Container, ProjectCard, remove_static_description_on_mount};
+use crate::components::{ButtonLink, remove_static_description_on_mount};
 use crate::content::portfolio;
-use crate::cv_presentation::RichTextView;
+use crate::cv::SocialPlatform;
 use crate::generated_cv::CV as GENERATED_CV;
-use crate::generated_projects::PROJECTS as GENERATED_PROJECTS;
 use crate::routes::{CV, HOME, PROJECTS, metadata_for_path};
 
 #[component]
@@ -34,36 +33,27 @@ pub fn HomePage() -> impl IntoView {
                 </div>
 
                 <ul class="home-socials" aria-label="Professional profiles">
-                    {imported_profile.social_links.iter().map(|link| view! {
+                    <li>
+                        <a href=format!("mailto:{}", imported_profile.contact.email)>"Email"</a>
+                    </li>
+                    {imported_profile.social_links.iter().filter(|link| link.platform == SocialPlatform::LinkedIn).map(|link| view! {
                         <li>
                             <a href=link.url.as_ref() target="_blank" rel="noreferrer">
-                                <RichTextView text=&link.label />
+                                "LinkedIn"
                                 <span class="sr-only">" (opens in a new tab)"</span>
                             </a>
                         </li>
                     }).collect_view()}
-                    <li>
-                        <a href=format!("mailto:{}", imported_profile.contact.email)>"Email"</a>
-                    </li>
+                    {imported_profile.social_links.iter().filter(|link| link.platform == SocialPlatform::GitHub).map(|link| view! {
+                        <li>
+                            <a href=link.url.as_ref() target="_blank" rel="noreferrer">
+                                "GitHub"
+                                <span class="sr-only">" (opens in a new tab)"</span>
+                            </a>
+                        </li>
+                    }).collect_view()}
                 </ul>
             </div>
-        </section>
-
-        <section class="section home-projects" aria-labelledby="selected-projects-title">
-            <Container>
-                <div class="section-heading-row">
-                    <div class="section-heading">
-                        <p class="eyebrow">"Selected projects"</p>
-                        <h2 id="selected-projects-title">"Recent work"</h2>
-                    </div>
-                    <ButtonLink href=PROJECTS.path secondary=true>"View all projects"</ButtonLink>
-                </div>
-                <div class="project-grid">
-                    {GENERATED_PROJECTS.iter().enumerate().map(|(index, project)| view! {
-                        <ProjectCard project=*project index=index />
-                    }).collect_view()}
-                </div>
-            </Container>
         </section>
     }
 }
