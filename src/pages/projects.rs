@@ -24,10 +24,12 @@ pub fn ProjectsPage() -> impl IntoView {
             </Container>
         </section>
 
-        <section class="section">
+        <section class="section" aria-labelledby="selected-projects-title">
             <Container>
                 <div class="project-index-header">
-                    <p>{format!("{} selected projects", projects.len())}</p>
+                    <h2 id="selected-projects-title" class="project-index-header__title">
+                        {format!("{} selected projects", projects.len())}
+                    </h2>
                     <p>"Newest first"</p>
                 </div>
                 <div class="project-grid">

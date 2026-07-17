@@ -79,6 +79,7 @@ Generate minified CSS and the optimized WebAssembly bundle:
 ```text
 npm run css:build
 trunk build --release
+npm run test:browser
 ```
 
 The deployable static output is written to `dist/`. The native Cargo release
@@ -105,8 +106,10 @@ npm run css:build
 trunk build --release
 ```
 
-Tests intentionally target stable logic: content integrity, unique identifiers,
-route metadata and content selection. Large generated HTML
+Rust tests intentionally target stable logic: content integrity, unique identifiers,
+route metadata and content selection. Browser tests serve the release-style Trunk
+bundle, use axe to scan every public and not-found route, and cover the 320px
+mobile menu, focus return, overflow and reduced-motion behaviour. Large generated HTML
 snapshots are avoided because they would be brittle without improving confidence.
 All Rust tests—including unit-style tests—live under `tests/`; source modules do
 not contain inline `#[cfg(test)]` sections.
@@ -219,10 +222,10 @@ presentation contract, and
 
 `.github/workflows/ci.yml` uses two event-specific paths:
 
-- Open pull requests targeting `main` run the shorter Rust quality suite on
-  creation, reopening, becoming ready for review and new commits: formatting,
-  Clippy and tests. Feature-branch pushes without an open pull request do not
-  start CI.
+- Open pull requests targeting `main` run formatting, Clippy, Rust tests and the
+  browser accessibility regression suite on creation, reopening, becoming ready
+  for review and new commits. Feature-branch pushes without an open pull request
+  do not start CI.
 - Every commit pushed or merged into `main` runs the complete pipeline: pinned
   frontend tooling, CSS generation, formatting, Clippy, tests, a native release
   build and the production WebAssembly bundle.
@@ -246,6 +249,7 @@ an independent full-build run.
 - [`docs/architecture.md`](docs/architecture.md) describes the implemented boundaries and data flow.
 - [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 presentation contract.
 - [`docs/project-import.md`](docs/project-import.md) documents authenticated project selection, metadata and operation.
+- [`docs/web-quality-milestone.md`](docs/web-quality-milestone.md) defines the staged accessibility, metadata, performance and deployment-readiness milestone.
 - [`docs/deployment.md`](docs/deployment.md) records the future static-hosting requirements and provider-selection checklist.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.

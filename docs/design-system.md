@@ -86,8 +86,10 @@ prevent horizontal overflow. Controls retain comfortable touch targets.
 ### Navigation
 
 Desktop links show the active route with colour and an underline. Mobile uses an
-explicitly labelled button with `aria-expanded`; the closed list is both visually
-hidden and removed from keyboard visibility. The sticky header maintains context.
+explicitly labelled button with `aria-expanded`; its closed list is visually
+hidden and natively inert, so its links are absent from both the accessibility
+tree and keyboard order. Selecting a mobile route closes the menu and moves
+focus to the focusable main landmark. The sticky header maintains context.
 
 ### Buttons and text links
 
@@ -130,6 +132,8 @@ with the download action.
 - New-tab context is included in accessible link names.
 - Decorative geometry is hidden from assistive technology.
 - Text and controls use fixed dark-palette values selected for clear contrast.
+- Browser checks scan every public and not-found view with axe, and exercise the
+  320px mobile menu, overflow prevention and reduced-motion contract.
 
 ## Adding styles
 

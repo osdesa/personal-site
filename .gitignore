@@ -2,6 +2,8 @@
 /dist/
 /node_modules/
 /styles/generated.css
+/playwright-report/
+/test-results/
 
 # Local AI assistant configuration
 /AGENTS.md

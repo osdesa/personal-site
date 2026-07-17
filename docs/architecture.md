@@ -114,7 +114,8 @@ tests share the same metadata; Leptos route declarations remain explicit in
 Contains narrowly scoped reusable site-wide components:
 
 - primitives: containers, headings, button links and skill badges
-- site shell: header, responsive navigation, skip link and footer
+- site shell: header, responsive inert navigation, skip link, main-focus
+  restoration after mobile navigation and footer
 - project cards
 
 Components accept small typed values rather than broad configuration objects.
@@ -221,8 +222,11 @@ than browser markup snapshots:
 - integrity of the checked-in CV bundle against its manifest
 
 CI additionally compiles every target with warnings denied and builds the actual
-Wasm application. The scheduled CV workflow repeats the native quality suite
-before opening an artifact update pull request.
+Wasm application. Playwright serves the release-style Trunk bundle, scans the
+home, projects, CV and not-found routes with axe, and checks the mobile menu's
+keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
+workflow repeats the native quality suite before opening an artifact update pull
+request.
 
 ## Extension points
 

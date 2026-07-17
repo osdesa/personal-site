@@ -34,6 +34,7 @@
   --text-primary: #f1f2f2;
   --text-secondary: #b2b5b8;
   --text-muted: #7f8489;
+  --text-ghost: #62676d;
   --text-inverse: #111214;
   --accent: #c6cdd4;
   --accent-strong: #eef0f2;
@@ -848,6 +849,13 @@ h3 {
   text-transform: uppercase;
 }
 
+.project-index-header__title {
+  margin-bottom: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
 /* CV */
 .page-hero--cv {
   padding-bottom: 3rem;
@@ -1002,7 +1010,7 @@ h3 {
 .not-found__code {
   position: absolute;
   inset: 50% auto auto 50%;
-  color: var(--grid-line);
+  color: var(--text-ghost);
   font-family: var(--font-mono);
   font-size: clamp(15rem, 45vw, 42rem);
   font-weight: 900;
@@ -1236,6 +1244,13 @@ h3 {
     flex: 1;
     gap: 0.6rem;
     padding-inline: 0.75rem;
+  }
+
+  .home-socials {
+    position: static;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.2rem;
+    margin-top: 2rem;
   }
 
   .section-heading-row {
