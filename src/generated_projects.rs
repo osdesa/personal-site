@@ -9,7 +9,7 @@ pub const PROJECTS: &[Project] = &[
         repository: "osdesa/personal-site",
         title: "Personal Website",
         summary: "A maintainable personal portfolio built in Rust with Leptos, generated CV and project data, and production-quality automation.",
-        visibility: ProjectVisibility::Private,
+        visibility: ProjectVisibility::Public,
         project_date: "2026-07-16",
         status: Some("Active"),
         technologies: &[
