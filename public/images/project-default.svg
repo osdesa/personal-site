@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title description">
+  <title id="title">Abstract project artwork</title>
+  <desc id="description">A dark geometric grid with layered grey panels.</desc>
+  <rect width="1200" height="720" fill="#101214"/>
+  <g stroke="#2b3035" stroke-width="2" opacity="0.8">
+    <path d="M0 120h1200M0 240h1200M0 360h1200M0 480h1200M0 600h1200"/>
+    <path d="M120 0v720M240 0v720M360 0v720M480 0v720M600 0v720M720 0v720M840 0v720M960 0v720M1080 0v720"/>
+  </g>
+  <path d="M180 520 460 240h360L1020 80v440z" fill="#20252a" stroke="#59616a" stroke-width="4"/>
+  <circle cx="460" cy="240" r="22" fill="#b8bec5"/>
+  <circle cx="820" cy="240" r="22" fill="#7d858e"/>
+</svg>

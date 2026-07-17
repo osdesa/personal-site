@@ -1,10 +1,11 @@
 use leptos::prelude::*;
 use leptos_meta::{Meta, Title};
 
-use crate::components::ButtonLink;
+use crate::components::{ButtonLink, Container, ProjectCard};
 use crate::content::portfolio;
 use crate::cv_presentation::RichTextView;
 use crate::generated_cv::CV as GENERATED_CV;
+use crate::generated_projects::PROJECTS as GENERATED_PROJECTS;
 use crate::routes::{CV, HOME, PROJECTS, title_for_path};
 
 #[component]
@@ -47,6 +48,23 @@ pub fn HomePage() -> impl IntoView {
                     </li>
                 </ul>
             </div>
+        </section>
+
+        <section class="section home-projects" aria-labelledby="selected-projects-title">
+            <Container>
+                <div class="section-heading-row">
+                    <div class="section-heading">
+                        <p class="eyebrow">"Selected projects"</p>
+                        <h2 id="selected-projects-title">"Recent work"</h2>
+                    </div>
+                    <ButtonLink href=PROJECTS.path secondary=true>"View all projects"</ButtonLink>
+                </div>
+                <div class="project-grid">
+                    {GENERATED_PROJECTS.iter().enumerate().map(|(index, project)| view! {
+                        <ProjectCard project=*project index=index />
+                    }).collect_view()}
+                </div>
+            </Container>
         </section>
     }
 }

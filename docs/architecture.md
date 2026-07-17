@@ -26,8 +26,9 @@ This is a small layered architecture rather than an enterprise framework:
 
 - **Presentation:** `pages/`, `components/` and `styles/input.css`
 - **Application composition:** `lib.rs`, `app.rs`, `main.rs` and `routes.rs`
-- **Domain data:** imported CV types/data in `cv.rs` and `generated_cv.rs`, plus
-  non-CV portfolio values in `content.rs`
+- **Domain data:** imported CV types/data in `cv.rs` and `generated_cv.rs`,
+  generated GitHub project data in `projects.rs` and `generated_projects.rs`,
+  plus homepage editorial values in `content.rs`
 - **Infrastructure boundary:** Trunk and the static `public/` directory
 
 The repository also contains a native build-time automation path. It is not
@@ -56,6 +57,12 @@ GitHub raw files ---> PDF validation + strict LaTeX parser
 Content types do not depend on Leptos. Presentation reads the data and renders
 it, while browser-specific behaviour is isolated from those data structures.
 
+The parallel native project path resolves the authenticated `portfolio` user
+list through GraphQL, with topic and allowlist fallbacks, retrieves optional
+`.github/portfolio.toml`, normalizes and filters complete candidates, sorts and
+caps them, and atomically generates `src/generated_projects.rs`. No partial
+remote result reaches the checked-in artifact.
+
 ## Runtime flow
 
 1. Trunk loads `index.html`, the generated stylesheet and the compiled Wasm.
@@ -63,25 +70,31 @@ it, while browser-specific behaviour is isolated from those data structures.
    into the document body.
 3. `App` provides metadata context, starts `Router`, and wraps routes in
    `SiteShell`.
-4. Non-CV pages consume immutable editorial values from `content::portfolio()`;
-   CV presentation and shared identity consume `generated_cv::CV` directly.
-
-The home route is intentionally a fixed single-viewport composition. Its root
-class hides the global footer and document overflow only while that route is
-mounted. Interior routes retain normal document scrolling and the shared footer.
+4. Pages consume editorial values from `content::portfolio()`, CV identity from
+   `generated_cv::CV`, and the shared static project slice from
+   `generated_projects::PROJECTS`.
 
 There are no network requests, environment variables, credentials or server
-processes in the deployed website runtime. The separate native `sync-cv` tool
-uses GitHub only during local or scheduled repository maintenance.
+processes in the deployed website runtime. The separate native `sync-cv` and
+`sync-projects` tools use GitHub only during local or scheduled maintenance.
 
 ## Module responsibilities
 
 ### `src/content.rs`
 
-Owns homepage-specific editorial copy and the separate Projects-page catalogue.
-It deliberately does not contain identity, contact, experience, education,
-skills, or CV-project data. Pure project selection and integrity behaviour is
-exercised by `tests/content_tests.rs`.
+Owns homepage-specific editorial copy only. It deliberately does not contain
+identity, contact, experience, education, skills, CV-project or portfolio
+project data.
+
+### `src/projects.rs`, `src/generated_projects.rs` and `src/project_sync/`
+
+`projects.rs` defines the borrowed runtime project model.
+`generated_projects.rs` is the automation-owned catalogue consumed by the home
+and Projects pages. The native-only `project_sync` subsystem separates strict
+configuration, GitHub transport, metadata parsing/normalization, deterministic
+generation and atomic no-op-aware storage. Its `ProjectSource` boundary keeps
+normal tests fixture-driven. Full operational rules live in
+`docs/project-import.md`.
 
 ### `src/lib.rs` and `src/main.rs`
 

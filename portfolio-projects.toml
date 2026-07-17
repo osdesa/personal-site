@@ -1,0 +1,11 @@
+owner = "osdesa"
+list = "portfolio"
+topic = "portfolio"
+metadata_path = ".github/portfolio.toml"
+limit = 4
+
+# Used only when neither the named GitHub list nor the topic selects a project.
+fallback_repositories = [
+  "osdesa/personal-site",
+  "osdesa/Blocky",
+]

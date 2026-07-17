@@ -1,0 +1,66 @@
+name: Synchronize portfolio projects
+
+on:
+  schedule:
+    - cron: "41 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: synchronize-portfolio-projects
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    name: Synchronize selected GitHub projects
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+
+      - name: Cache Rust build data
+        uses: Swatinem/rust-cache@v2
+
+      - name: Require the portfolio read token
+        env:
+          PORTFOLIO_GITHUB_TOKEN: ${{ secrets.PORTFOLIO_GITHUB_TOKEN }}
+        run: test -n "$PORTFOLIO_GITHUB_TOKEN"
+
+      - name: Synchronize validated project data
+        env:
+          PORTFOLIO_GITHUB_TOKEN: ${{ secrets.PORTFOLIO_GITHUB_TOKEN }}
+        run: cargo run --locked --release --features project-sync --bin sync-projects -- --root "$GITHUB_WORKSPACE"
+
+      - name: Verify synchronized repository
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets --all-features -- -D warnings
+          cargo test --locked --all-targets --all-features
+          cargo build --locked --release --features project-sync --bin sync-projects
+
+      - name: Create or update project synchronization pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.PORTFOLIO_SYNC_TOKEN || github.token }}
+          add-paths: src/generated_projects.rs
+          branch: automation/project-sync
+          delete-branch: true
+          commit-message: "chore(projects): synchronize portfolio data"
+          title: "chore(projects): synchronize portfolio data"
+          body: |
+            Synchronizes the newest four validated portfolio repositories.
+
+            The Rust synchronizer selected the authenticated `portfolio` list
+            (or a documented topic/allowlist fallback), fetched
+            optional metadata, filtered archived repositories and forks, and
+            generated deterministic static Rust data without exposing the token.

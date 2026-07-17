@@ -1,0 +1,9 @@
+title = "Personal Website"
+summary = "A maintainable personal portfolio built in Rust with Leptos, generated CV and project data, and production-quality automation."
+status = "Active"
+technologies = ["Rust", "Leptos", "WebAssembly", "Tailwind CSS", "GitHub Actions"]
+highlights = [
+  "Typed build-time content generation keeps credentials and remote parsing out of the browser.",
+  "Accessibility, deterministic tests, and release builds are enforced in continuous integration.",
+]
+show_repository = true
