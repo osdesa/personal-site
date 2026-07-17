@@ -13,6 +13,7 @@ export default defineConfig({
   webServer: {
     command: "trunk serve --release --port 8081",
     reuseExistingServer: false,
+    timeout: 180_000,
     url: "http://127.0.0.1:8081",
   },
 });
