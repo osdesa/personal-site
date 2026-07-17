@@ -70,9 +70,6 @@ jobs:
       - name: Build production WebAssembly bundle
         run: trunk build --release
 
-      - name: Enforce Lighthouse quality budgets
-        run: npm run test:performance
-
       - name: Build CV synchronizer
         run: cargo build --release --features cv-sync --bin sync-cv
 
@@ -135,6 +132,3 @@ jobs:
 
       - name: Build production WebAssembly bundle
         run: trunk build --release
-
-      - name: Enforce Lighthouse quality budgets
-        run: npm run test:performance

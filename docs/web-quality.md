@@ -44,8 +44,10 @@ npm run test:performance
 The repository-owned runner starts a local static SPA server, audits `/`,
 `/projects` and `/cv` three times with the desktop preset, and evaluates median
 results. The reports are written to the ignored `.lighthouseci/` directory
-locally. CI performs the same check after its release bundle build. A deployed
-audit is still required once hosting, HTTPS and cache headers exist.
+locally. The GitHub-hosted Lighthouse step is temporarily disabled because its
+Chrome process cannot establish a debugging connection on the Ubuntu runner;
+the audit remains available locally while that runner integration is revisited.
+A deployed audit is still required once hosting, HTTPS and cache headers exist.
 
 The initial local release baseline on 17 July 2026 was a 0.32 s FCP and 0.68 s
 LCP median across the nine route/runs; the initial transfer was 480,175 bytes
@@ -72,6 +74,5 @@ web CV. Browser regression tests exercise both behaviours.
 
 On Windows, Lighthouse can write a complete JSON report but fail while cleaning
 up Chrome's temporary profile. The runner accepts that platform-specific exit
-only when the report exists; malformed or missing reports still fail. CI is the
-enforcement environment, and a deployed audit is still required after hosting
-adds HTTPS and cache headers.
+only when the report exists; malformed or missing reports still fail. A
+deployed audit is still required after hosting adds HTTPS and cache headers.
