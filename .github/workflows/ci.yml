@@ -16,9 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pull-request-checks:
-    name: Pull request checks
-    if: github.event_name == 'pull_request'
+  rust-quality:
+    name: Rust quality and native release build
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -30,70 +29,42 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy,rustfmt
-          targets: wasm32-unknown-unknown
 
       - name: Cache Rust build data
         uses: Swatinem/rust-cache@v2
-
-      - name: Install Node.js
-        uses: actions/setup-node@v6
         with:
-          node-version: 24
-          cache: npm
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Install Trunk
-        uses: taiki-e/install-action@v2
-        with:
-          tool: trunk@0.21.14
-
-      - name: Install browser test runtime
-        run: npx playwright install --with-deps chromium
-
-      - name: Run browser accessibility regression checks
-        run: npm run test:browser
+          shared-key: ci-${{ runner.os }}
 
       - name: Check formatting
         run: cargo fmt --check
 
       - name: Run Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
 
       - name: Run tests
-        run: cargo test --all-targets --all-features
+        run: cargo test --locked --all-targets --all-features
 
-      - name: Build native release target
-        run: cargo build --release
+      - name: Build all native release binaries
+        run: cargo build --locked --release --all-features --bins
 
-      - name: Build production WebAssembly bundle
-        run: trunk build --release
-
-      - name: Build CV synchronizer
-        run: cargo build --release --features cv-sync --bin sync-cv
-
-      - name: Build project synchronizer
-        run: cargo build --release --features project-sync --bin sync-projects
-
-  main-build:
-    name: Main quality and production build
-    if: github.event_name == 'push'
+  web-build:
+    name: CSS and production WebAssembly bundle
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Install stable Rust
+      - name: Install stable Rust with the WebAssembly target
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy,rustfmt
           targets: wasm32-unknown-unknown
 
       - name: Cache Rust build data
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-${{ runner.os }}
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -108,27 +79,100 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: trunk@0.21.14
-
-      - name: Install browser test runtime
-        run: npx playwright install --with-deps chromium
 
       - name: Build styles
         run: npm run css:build
 
-      - name: Run browser accessibility regression checks
-        run: npm run test:browser
-
-      - name: Check formatting
-        run: cargo fmt --check
-
-      - name: Run Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Run tests
-        run: cargo test --all-targets --all-features
-
-      - name: Build native release target
-        run: cargo build --release
-
       - name: Build production WebAssembly bundle
         run: trunk build --release
+
+      - name: Upload production bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-bundle
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
+
+  browser-accessibility:
+    name: Browser accessibility regression checks
+    needs: web-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Restore Playwright browser cache
+        id: playwright-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Chromium and its system dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Save Playwright browser cache
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Download production bundle
+        uses: actions/download-artifact@v5
+        with:
+          name: production-bundle
+          path: dist
+
+      - name: Run browser accessibility regression checks
+        run: npm run test:browser:dist
+
+  performance-budget:
+    name: Lighthouse production budget
+    if: github.event_name == 'push'
+    needs: web-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Restore Playwright browser cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Chromium and its system dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Download production bundle
+        uses: actions/download-artifact@v5
+        with:
+          name: production-bundle
+          path: dist
+
+      - name: Enforce Lighthouse quality budgets
+        run: npm run test:performance

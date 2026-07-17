@@ -1,5 +1,9 @@
 # ADR 0002: Event-specific continuous integration
 
+> Amended by [ADR 0009](0009-ci-bundle-reuse-and-quality-gates.md), which
+> defines the current job boundaries and quality gates. The event scope and
+> cancellation policy below remain in effect.
+
 ## Context
 
 The original workflow ran the complete native and WebAssembly production build
@@ -18,12 +22,12 @@ would also consume CI capacity before the branch was ready for review.
 
 ## Decision
 
-Use separate jobs in one workflow, selected by their GitHub event:
+Use one workflow selected by GitHub event:
 
-- `pull_request` activity targeting `main` runs formatting, Clippy and tests.
-- `push` activity on `main` additionally installs frontend tooling, generates
-  CSS, creates the native release build and creates the production WebAssembly
-  bundle.
+- `pull_request` activity targeting `main` runs the complete native, CSS,
+  production-bundle and browser-accessibility validation.
+- `push` activity on `main` runs the same validation and additionally enforces
+  the production Lighthouse budgets.
 
 The pull request trigger listens to opened, reopened, synchronized and
 ready-for-review events. Consequently, new feature-branch commits run CI only
@@ -35,16 +39,17 @@ on `main` retains an independent full build.
 
 ## Rationale
 
-Formatting, linting and tests provide fast review feedback without performing
-release packaging twice. Restricting branch checks to pull requests focuses CI
-resources on changes under review. A complete build after changes reach `main`
-still verifies the exact integration state intended for deployment.
+Restricting branch checks to pull requests focuses CI resources on changes under
+review. The main-only performance gate protects the post-integration release
+artifact without adding its nine navigations to every review update. ADR 0009
+defines artifact reuse so the broader pull-request coverage does not duplicate
+release packaging.
 
 ## Consequences
 
-- Pull requests receive faster feedback and use less CI time.
+- Pull requests receive complete build and browser feedback without the
+  main-only performance audit.
 - Feature branches without an open pull request receive no remote CI feedback;
   contributors must run the documented checks locally.
-- CSS generation and release-only packaging failures are discovered after a
-  commit reaches `main`, rather than during pull request validation.
-- Branch protection should require the `Pull request checks` job before merge.
+- Branch protection should require all pull-request jobs: native quality,
+  production WebAssembly bundle and browser accessibility checks.

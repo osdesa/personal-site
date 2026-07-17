@@ -1,8 +1,9 @@
-import { createReadStream } from "node:fs";
 import { mkdir, readFile, rm, stat } from "node:fs/promises";
-import { createServer } from "node:http";
-import { resolve, sep } from "node:path";
+import { resolve } from "node:path";
 import { spawn } from "node:child_process";
+import { chromium } from "@playwright/test";
+
+import { createStaticSpaServer } from "./static-spa-server.mjs";
 
 const routes = ["/", "/projects", "/cv"];
 const runsPerRoute = 3;
@@ -10,7 +11,7 @@ const categories = ["performance", "accessibility", "best-practices", "seo"];
 const reportDirectory = resolve(".lighthouseci");
 const staticDirectory = resolve("dist");
 const lighthouseCli = resolve("node_modules/lighthouse/cli/index.js");
-const chromeFlags = ["--no-sandbox", "--disable-dev-shm-usage"];
+const chromeFlags = ["--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"];
 const budgets = {
   performance: 0.9,
   accessibility: 1,
@@ -47,39 +48,6 @@ try {
   );
 }
 
-function createStaticSpaServer(root) {
-  return createServer(async (request, response) => {
-    const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-    const candidate = resolve(root, `.${pathname}`);
-    const safeCandidate = candidate === root || candidate.startsWith(`${root}${sep}`);
-
-    try {
-      const file = safeCandidate ? await stat(candidate).catch(() => null) : null;
-      if (!file && pathname.includes(".")) {
-        response.writeHead(404, { "content-type": "text/plain" });
-        response.end("Static asset not found.");
-        return;
-      }
-      const target = file?.isFile() ? candidate : resolve(root, "index.html");
-      response.writeHead(200, { "content-type": contentType(target) });
-      createReadStream(target).pipe(response);
-    } catch {
-      response.writeHead(500, { "content-type": "text/plain" });
-      response.end("Unable to serve the production bundle.");
-    }
-  });
-}
-
-function contentType(path) {
-  if (path.endsWith(".css")) return "text/css";
-  if (path.endsWith(".js")) return "text/javascript";
-  if (path.endsWith(".wasm")) return "application/wasm";
-  if (path.endsWith(".svg")) return "image/svg+xml";
-  if (path.endsWith(".jpg")) return "image/jpeg";
-  if (path.endsWith(".pdf")) return "application/pdf";
-  return "text/html";
-}
-
 function runLighthouse(url, reportPath) {
   const args = [
     lighthouseCli,
@@ -88,23 +56,30 @@ function runLighthouse(url, reportPath) {
     `--only-categories=${categories.join(",")}`,
     "--output=json",
     `--output-path=${reportPath}`,
+    `--chrome-path=${chromium.executablePath()}`,
     `--chrome-flags=${chromeFlags.join(" ")}`,
     "--quiet",
   ];
 
-  return new Promise((resolveRun, rejectRun) => {
-    const child = spawn(process.execPath, args, { stdio: "inherit" });
-    child.once("error", rejectRun);
-    child.once("exit", async (code) => {
-      if (code === 0) resolveRun();
-      else if (process.platform === "win32" && (await completedReportExists(reportPath))) {
-        console.warn(`Lighthouse wrote ${reportPath} but could not clean up its Windows profile.`);
-        resolveRun();
-      } else {
-        rejectRun(new Error(`Lighthouse exited with status ${code ?? "unknown"} for ${url}.`));
-      }
+  const attemptRun = (attempt) =>
+    new Promise((resolveRun, rejectRun) => {
+      const child = spawn(process.execPath, args, { stdio: "inherit" });
+      child.once("error", rejectRun);
+      child.once("exit", async (code) => {
+        if (code === 0) resolveRun();
+        else if (process.platform === "win32" && (await completedReportExists(reportPath))) {
+          console.warn(`Lighthouse wrote ${reportPath} but could not clean up its Windows profile.`);
+          resolveRun();
+        } else if (attempt === 1) {
+          console.warn(`Lighthouse did not complete ${url}; retrying once with a fresh Chromium process.`);
+          attemptRun(2).then(resolveRun, rejectRun);
+        } else {
+          rejectRun(new Error(`Lighthouse exited with status ${code ?? "unknown"} for ${url}.`));
+        }
+      });
     });
-  });
+
+  return attemptRun(1);
 }
 
 async function completedReportExists(reportPath) {

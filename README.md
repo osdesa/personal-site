@@ -227,15 +227,13 @@ presentation contract, and
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` uses two event-specific paths:
-
-- Open pull requests targeting `main` run formatting, Clippy, Rust tests and the
-  browser accessibility regression suite on creation, reopening, becoming ready
-  for review and new commits. Feature-branch pushes without an open pull request
-  do not start CI.
-- Every commit pushed or merged into `main` runs the complete pipeline: pinned
-  frontend tooling, CSS generation, formatting, Clippy, tests, a native release
-  build and the production WebAssembly bundle.
+`.github/workflows/ci.yml` runs the complete required validation for open pull
+requests targeting `main` and every commit pushed to `main`: formatting, Clippy
+with warnings denied, Rust tests, all native release binaries, CSS generation,
+the production Trunk bundle and browser accessibility regression checks.
+Feature-branch pushes without an open pull request do not start CI. The
+Lighthouse budget gate additionally runs on `main`, where it checks the release
+artifact that is eligible for deployment.
 
 `.github/workflows/sync-cv.yml` runs daily at 05:17 UTC and on manual dispatch.
 It executes the release synchronizer, runs formatting, Clippy, tests and a
@@ -247,9 +245,21 @@ dispatch. It requires `PORTFOLIO_GITHUB_TOKEN`, preserves the current generated
 catalogue on any failure, validates the repository, and opens or updates the
 `automation/project-sync` pull request only when output differs.
 
-Cargo and npm build data are cached where those tools are used. Pull request
-runs supersede stale runs for the same pull request, while each `main` commit has
-an independent full-build run.
+### CI efficiency
+
+Native Rust quality and the WebAssembly/CSS build run as independent jobs. The
+web-build job uploads the exact `dist/` output as a one-day artifact; browser
+accessibility and the `main`-only Lighthouse budget job download and serve that
+same immutable bundle instead of compiling it again. Cargo build data, npm's
+package cache and the Playwright Chromium download are restored where safe.
+
+This makes the pull-request critical path the slower of the native job and the
+web-build-plus-browser job, instead of serial native checks plus a second Trunk
+build inside browser tests. On `main`, the Lighthouse job runs in parallel with
+browser checks after the shared build. Stale pull-request runs are cancelled,
+while each `main` commit retains an independent full run. See
+[`docs/adr/0009-ci-bundle-reuse-and-quality-gates.md`](docs/adr/0009-ci-bundle-reuse-and-quality-gates.md)
+for the reliability and cache boundaries.
 
 ## Documentation
 
@@ -265,6 +275,9 @@ an independent full-build run.
 - [`docs/adr/0004-generated-rust-cv-data.md`](docs/adr/0004-generated-rust-cv-data.md) records the generated Rust representation decision.
 - [`docs/adr/0005-generated-cv-presentation.md`](docs/adr/0005-generated-cv-presentation.md) records the direct generated-data presentation decision.
 - [`docs/adr/0006-generated-github-projects.md`](docs/adr/0006-generated-github-projects.md) records build-time GitHub project generation.
+- [`docs/adr/0007-browser-accessibility-regression-checks.md`](docs/adr/0007-browser-accessibility-regression-checks.md) records browser-level accessibility assurance.
+- [`docs/adr/0008-csr-metadata-and-performance-budgets.md`](docs/adr/0008-csr-metadata-and-performance-budgets.md) records truthful CSR metadata and local quality budgets.
+- [`docs/adr/0009-ci-bundle-reuse-and-quality-gates.md`](docs/adr/0009-ci-bundle-reuse-and-quality-gates.md) records shared release-bundle CI validation.
 
 ## Future work
 
