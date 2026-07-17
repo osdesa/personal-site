@@ -35,13 +35,21 @@ linked into the WebAssembly target:
 ```text
 GitHub tag API ----> semantic selection ----> immutable commit SHA
                                                    |
-GitHub raw files ---> bounded validation -----------+
+GitHub raw files ---> PDF validation + strict LaTeX parser
+                                                   |
+                                                   v
+                                  typed CV domain model
+                                                   |
+                                                   v
+                                   static Rust generation
                                                    |
                                                    v
                               staged local transaction + manifest
                                                    |
-                                                   v
-                                      public/cv source bundle
+                              +--------------------+------------------+
+                              |                                       |
+                              v                                       v
+                  public/cv source bundle                  src/generated_cv.rs
 ```
 
 Content types do not depend on Leptos. Presentation reads the data and renders
@@ -110,24 +118,44 @@ Is the single styling source. Tailwind 4 supplies its build pipeline and token
 utilities; semantic CSS variables implement the permanent dark palette and reusable
 component rules. `styles/generated.css` is generated and ignored.
 
+### `src/cv.rs` and `src/generated_cv.rs`
+
+`cv.rs` owns the presentation-independent imported CV domain: profile and
+contact details, recognised social platforms, education, experience, projects,
+skills, typed locations and month-precision date ranges. `RichText` is a safe
+tree of text, strong, emphasis, underline and validated link nodes; it cannot
+contain HTML.
+
+The model uses `Cow`, allowing the native parser to construct owned values and
+the generated module to expose borrowed static data without runtime parsing or
+allocation. `generated_cv.rs` is an automation-owned artifact containing `CV`
+and its upstream tag/SHA. Stage 3 will consume it; current pages continue using
+`content.rs`, so Stage 2 changes no presentation.
+
 ### `src/cv_sync/` and `src/bin/sync_cv.rs`
 
-The native-only CV synchronization subsystem has four responsibilities:
+The native-only CV synchronization subsystem has six responsibilities:
 
-- `manifest` owns semantic tag selection, strict provenance metadata, hashing,
-  and bounded TeX/PDF validation;
+- `manifest` owns semantic tag selection, schema-v2 provenance metadata,
+  hashing, bounded TeX/PDF validation and candidate bundle construction;
 - `github` adapts the paginated GitHub tag API and raw files to the small
   `CvSource` boundary;
+- `parser` consumes the stable, documented CV grammar completely and builds the
+  owned domain model with line/column diagnostics;
+- `generator` deterministically writes the borrowed static Rust representation;
 - `synchronizer` compares a fully validated local bundle with upstream and
   rejects moved tags or version rollback before downloading changes;
 - `store` stages and flushes a candidate beside its destination, backs up the
-  current bundle, installs the manifest last, and rolls back reported failures.
+  current LaTeX, PDF, generated module and manifest, installs the manifest last,
+  and rolls back reported failures. Local validation reparses and regenerates
+  the data to verify semantic correspondence in addition to manifest hashes.
 
 The thin binary supplies the production GitHub source and repository-root
 configuration. `cv_sync` and its native dependencies are excluded from the
 `wasm32` target, so synchronization concerns cannot enter the browser bundle.
-The TeX remains opaque during Stage 1; `content.rs` continues to own displayed
-portfolio data.
+The domain model and generated static value do compile for Wasm, but no parser,
+PDF, HTTP, hashing or serialization dependency does. The exact grammar and
+Stage 3 contract are documented in `docs/cv-import.md`.
 
 ## Routing and static hosting
 
@@ -150,8 +178,12 @@ than browser markup snapshots:
 - featured-project selection
 - unique internal routes and page titles
 - semantic tag selection, manifest and artifact validation
+- complete CV parsing, typed semantic values and nested safe formatting
+- malformed structures, missing declarations/sections and unknown commands
+- deterministic parsing/generation against the checked-in regression artifact
 - GitHub transport behavior against a deterministic local HTTP server
-- unchanged, update, corruption, network, lock, tag-movement and rollback paths
+- unchanged, update, corruption, unsupported-LaTeX, network, lock, tag-movement
+  and rollback paths across all four committed paths
 - integrity of the checked-in CV bundle against its manifest
 
 CI additionally compiles every target with warnings denied and builds the actual
@@ -162,8 +194,8 @@ maintenance cost.
 
 ## Extension points
 
-- Replace static values in `content.rs` with parsed Markdown or JSON behind the
-  same types when authoring needs justify it.
+- Stage 3 can replace or map the CV portions of `content.rs` from
+  `generated_cv::CV` without changing the import transaction.
 - Add project detail routes without changing the project-card content model.
 - Add an Axum server only when a real server concern appears (for example a
   validated contact endpoint, authentication or dynamic content).

@@ -51,6 +51,7 @@ jobs:
             public/cv/Hayden-Farrell-CV.tex
             public/cv/Hayden-Farrell-CV.pdf
             public/cv/source-manifest.json
+            src/generated_cv.rs
           branch: automation/cv-sync
           delete-branch: true
           commit-message: "chore(cv): synchronize source release"
@@ -59,4 +60,5 @@ jobs:
             Synchronizes the highest semantic-version release from `osdesa/cv`.
 
             The Rust synchronizer resolved the tag to an immutable commit, downloaded
-            and validated both artifacts, and updated the provenance manifest.
+            and validated both artifacts, strictly parsed the LaTeX, generated typed
+            Rust data, and updated the provenance manifest transactionally.

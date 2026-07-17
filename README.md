@@ -15,8 +15,8 @@ The initial design and CV-content milestones are complete. The site includes:
 - reusable navigation, project, skill, timeline and layout components
 - central design tokens and typed portfolio data
 - professional experience, education, and skills sourced from the current CV
-- a transactional daily CV source/PDF synchronization pipeline with immutable
-  provenance
+- a transactional daily CV source/PDF importer with immutable provenance,
+  strict LaTeX parsing and generated static Rust data
 - focused Rust tests and a production CI build
 
 Authentication, a database, CMS, blog, analytics, search, contact-form backend
@@ -116,8 +116,10 @@ not contain inline `#[cfg(test)]` sections.
 ├── src/
 │   ├── app.rs                  # Router composition
 │   ├── components/             # Reusable presentation components
-│   ├── content.rs              # All editable portfolio data and models
-│   ├── cv_sync/                # Native CV synchronization boundaries
+│   ├── content.rs              # Current presentation content and models
+│   ├── cv.rs                   # Imported CV domain model and safe rich text
+│   ├── cv_sync/                # Native CV import/synchronization boundaries
+│   ├── generated_cv.rs         # Transactionally generated static CV data
 │   ├── lib.rs                  # Shared library boundary for app and tests
 │   ├── pages/                  # Route-level views
 │   ├── routes.rs               # Canonical public route metadata
@@ -137,10 +139,11 @@ the external test files in `tests/`, which are organised by responsibility.
 
 ## Updating portfolio content
 
-All editable profile, social, project, skill, experience and education content
-is in [`src/content.rs`](src/content.rs). Keep the profile, experience,
-education, and skills aligned with the source CV when it changes. Project
-entries remain sample content until the later Projects-page milestone.
+Displayed profile, social, project, skill, experience and education content
+remains in [`src/content.rs`](src/content.rs) through Stage 2. The automated CV
+representation is available separately as `generated_cv::CV`; Stage 3 should
+map or render that typed data rather than hand-copying future CV changes.
+Project entries remain sample content until the later Projects-page milestone.
 Route-level framing copy remains in `src/pages/`.
 
 Update route-specific browser titles in
@@ -165,9 +168,9 @@ The integrity tests catch duplicate/invalid identifiers and incomplete links.
 The canonical TeX and PDF are published as semantic-version tags in
 [`osdesa/cv`](https://github.com/osdesa/cv). A daily GitHub Actions workflow
 selects the highest version, resolves it to a commit SHA, validates both files,
-and opens a pull request containing the complete source bundle and provenance
-manifest. Stage 1 stores these artifacts without parsing the TeX or deriving
-website content from it.
+strictly parses the supported LaTeX grammar, and generates
+`src/generated_cv.rs`. It opens a pull request containing the source, PDF,
+generated typed data and schema-v2 provenance manifest as one transaction.
 
 Run the same operation locally with:
 
@@ -175,9 +178,11 @@ Run the same operation locally with:
 cargo run --locked --release --features cv-sync --bin sync-cv -- --root .
 ```
 
-The command is a no-op when the manifest already names the selected tag and SHA.
-See [`public/cv/README.md`](public/cv/README.md) for validation, failure recovery,
-workflow permissions, and manual operation details.
+The command is a no-op only when the manifest identifies the selected tag/SHA,
+all hashes match, and reparsing the local TeX reproduces the generated module
+byte for byte. See [`docs/cv-import.md`](docs/cv-import.md) for the supported
+grammar, output decision and Stage 3 contract, and
+[`public/cv/README.md`](public/cv/README.md) for operation details.
 
 ## Continuous integration
 
@@ -203,15 +208,17 @@ an independent full-build run.
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) describes the implemented boundaries and data flow.
+- [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 contract.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
 - [`docs/adr/0002-event-specific-ci.md`](docs/adr/0002-event-specific-ci.md) records the event-specific CI strategy.
 - [`docs/adr/0003-transactional-cv-synchronization.md`](docs/adr/0003-transactional-cv-synchronization.md) records the CV provenance and transaction design.
+- [`docs/adr/0004-generated-rust-cv-data.md`](docs/adr/0004-generated-rust-cv-data.md) records the generated Rust representation decision.
 
 ## Future work
 
-The recommended next milestone is browser-based visual and accessibility
-validation followed by deployment configuration for the selected host. The
-Projects page and its content are intentionally deferred for a later redesign.
-Later phases can add Markdown articles, RSS, search, demonstrations and
-analytics only when their requirements are concrete.
+The recommended next CV milestone is Stage 3: render `generated_cv::CV` through
+safe Leptos components without raw HTML. Browser-based visual/accessibility
+validation and deployment configuration remain subsequent work. The Projects
+page redesign, Markdown articles, RSS, search, demonstrations and analytics are
+deferred until their requirements are concrete.

@@ -7,8 +7,9 @@ use std::{
 use tempfile::TempDir;
 
 use super::{
-    CvManifest, CvSyncError, MANIFEST_FILENAME, PDF_FILENAME, TEX_FILENAME, ValidatedBundle,
-    validate_pdf, validate_tex,
+    CvManifest, CvSyncError, GENERATED_CV_PATH, MANIFEST_FILENAME, MANIFEST_REPOSITORY_PATH,
+    PDF_REPOSITORY_PATH, RemoteTag, TEX_REPOSITORY_PATH, ValidatedBundle, generate_cv_module,
+    parse_cv, validate_pdf, validate_tex,
 };
 
 const LOCK_FILENAME: &str = ".cv-sync.lock";
@@ -16,6 +17,7 @@ const LOCK_FILENAME: &str = ".cv-sync.lock";
 /// Filesystem boundary for the checked-in CV source bundle.
 #[derive(Clone, Debug)]
 pub struct CvBundleStore {
+    repository_root: PathBuf,
     directory: PathBuf,
 }
 
@@ -23,12 +25,15 @@ impl CvBundleStore {
     /// Creates a store rooted at `<repository_root>/public/cv`.
     #[must_use]
     pub fn new(repository_root: impl AsRef<Path>) -> Self {
+        let repository_root = repository_root.as_ref().to_path_buf();
         Self {
-            directory: repository_root.as_ref().join("public").join("cv"),
+            directory: repository_root.join("public").join("cv"),
+            repository_root,
         }
     }
 
-    /// Returns the directory containing the three committed bundle files.
+    /// Returns the directory containing the imported source artifacts and
+    /// manifest. The generated module is stored under `src/`.
     #[must_use]
     pub fn directory(&self) -> &Path {
         &self.directory
@@ -54,18 +59,40 @@ impl CvBundleStore {
             .map_err(|error| CvSyncError::Local(format!("manifest is not valid JSON: {error}")))?;
         manifest.validate_metadata().map_err(CvSyncError::Local)?;
 
-        let tex = self.read_asset(TEX_FILENAME)?;
-        let pdf = self.read_asset(PDF_FILENAME)?;
+        let tex = self.read_asset(TEX_REPOSITORY_PATH)?;
+        let pdf = self.read_asset(PDF_REPOSITORY_PATH)?;
+        let generated = self.read_asset(GENERATED_CV_PATH)?;
         validate_tex(&tex).map_err(CvSyncError::Local)?;
         validate_pdf(&pdf).map_err(CvSyncError::Local)?;
         if !manifest.source.matches(&tex) {
             return Err(CvSyncError::Local(format!(
-                "{TEX_FILENAME} does not match its manifest digest"
+                "{TEX_REPOSITORY_PATH} does not match its manifest digest"
             )));
         }
         if !manifest.pdf.matches(&pdf) {
             return Err(CvSyncError::Local(format!(
-                "{PDF_FILENAME} does not match its manifest digest"
+                "{PDF_REPOSITORY_PATH} does not match its manifest digest"
+            )));
+        }
+        if !manifest.generated.matches(&generated) {
+            return Err(CvSyncError::Local(format!(
+                "{GENERATED_CV_PATH} does not match its manifest digest"
+            )));
+        }
+        let source = std::str::from_utf8(&tex)
+            .map_err(|_| CvSyncError::Local("TeX source is not UTF-8".to_owned()))?;
+        let cv = parse_cv(source)
+            .map_err(|error| CvSyncError::Local(format!("LaTeX parse failed at {error}")))?;
+        let expected_generated = generate_cv_module(
+            &cv,
+            &RemoteTag {
+                name: manifest.tag.clone(),
+                commit_sha: manifest.commit_sha.clone(),
+            },
+        );
+        if generated != expected_generated {
+            return Err(CvSyncError::Local(format!(
+                "{GENERATED_CV_PATH} was not generated from the manifested TeX and source identity"
             )));
         }
         Ok(Some(manifest))
@@ -80,10 +107,29 @@ impl CvBundleStore {
             .map_err(CvSyncError::Validation)?;
         validate_tex(&bundle.tex).map_err(CvSyncError::Validation)?;
         validate_pdf(&bundle.pdf).map_err(CvSyncError::Validation)?;
-        if !bundle.manifest.source.matches(&bundle.tex) || !bundle.manifest.pdf.matches(&bundle.pdf)
+        if !bundle.manifest.source.matches(&bundle.tex)
+            || !bundle.manifest.pdf.matches(&bundle.pdf)
+            || !bundle.manifest.generated.matches(&bundle.generated)
         {
             return Err(CvSyncError::Validation(
                 "bundle bytes do not match the proposed manifest".to_owned(),
+            ));
+        }
+        let source = std::str::from_utf8(&bundle.tex)
+            .map_err(|_| CvSyncError::Validation("TeX source is not UTF-8".to_owned()))?;
+        let cv = parse_cv(source)
+            .map_err(|error| CvSyncError::Validation(format!("LaTeX parse failed at {error}")))?;
+        let expected_generated = generate_cv_module(
+            &cv,
+            &RemoteTag {
+                name: bundle.manifest.tag.clone(),
+                commit_sha: bundle.manifest.commit_sha.clone(),
+            },
+        );
+        if bundle.generated != expected_generated {
+            return Err(CvSyncError::Validation(
+                "generated CV module does not match the proposed TeX and source identity"
+                    .to_owned(),
             ));
         }
 
@@ -93,6 +139,11 @@ impl CvBundleStore {
                 self.directory.display()
             ))
         })?;
+        if let Some(parent) = self.repository_root.join(GENERATED_CV_PATH).parent() {
+            fs::create_dir_all(parent).map_err(|error| {
+                CvSyncError::Local(format!("could not create {}: {error}", parent.display()))
+            })?;
+        }
         let _lock = LockGuard::acquire(self.directory.join(LOCK_FILENAME))?;
         let stage = tempfile::Builder::new()
             .prefix(".cv-sync-stage-")
@@ -101,9 +152,14 @@ impl CvBundleStore {
 
         let manifest_bytes = serialize_manifest(&bundle.manifest)?;
         let entries = [
-            Entry::new(TEX_FILENAME, &bundle.tex),
-            Entry::new(PDF_FILENAME, &bundle.pdf),
-            Entry::new(MANIFEST_FILENAME, &manifest_bytes),
+            Entry::new(TEX_REPOSITORY_PATH, "new-source.tex", &bundle.tex),
+            Entry::new(PDF_REPOSITORY_PATH, "new-cv.pdf", &bundle.pdf),
+            Entry::new(GENERATED_CV_PATH, "new-generated.rs", &bundle.generated),
+            Entry::new(
+                MANIFEST_REPOSITORY_PATH,
+                "new-manifest.json",
+                &manifest_bytes,
+            ),
         ];
         for entry in &entries {
             write_synced(&stage.path().join(entry.staged_name()), entry.bytes)?;
@@ -112,8 +168,8 @@ impl CvBundleStore {
         self.replace_entries(stage, &entries)
     }
 
-    fn read_asset(&self, filename: &str) -> Result<Vec<u8>, CvSyncError> {
-        let path = self.directory.join(filename);
+    fn read_asset(&self, repository_path: &str) -> Result<Vec<u8>, CvSyncError> {
+        let path = self.repository_root.join(repository_path);
         fs::read(&path).map_err(|error| {
             CvSyncError::Local(format!("could not read {}: {error}", path.display()))
         })
@@ -124,7 +180,7 @@ impl CvBundleStore {
         let mut installed = Vec::new();
 
         for entry in entries {
-            let target = self.directory.join(entry.filename);
+            let target = self.repository_root.join(entry.repository_path);
             if target.exists() {
                 let backup = stage.path().join(entry.backup_name());
                 if let Err(error) = fs::rename(&target, &backup) {
@@ -141,7 +197,7 @@ impl CvBundleStore {
 
         for entry in entries {
             let staged = stage.path().join(entry.staged_name());
-            let target = self.directory.join(entry.filename);
+            let target = self.repository_root.join(entry.repository_path);
             if let Err(error) = fs::rename(&staged, &target) {
                 return self.rollback_or_preserve(
                     stage,
@@ -159,6 +215,20 @@ impl CvBundleStore {
                 &installed,
                 &backed_up,
                 format!("could not finalize CV transaction: {error}"),
+            );
+        }
+        let generated_parent = self
+            .repository_root
+            .join(GENERATED_CV_PATH)
+            .parent()
+            .expect("the generated path has a parent")
+            .to_path_buf();
+        if let Err(error) = sync_directory(&generated_parent) {
+            return self.rollback_or_preserve(
+                stage,
+                &installed,
+                &backed_up,
+                format!("could not finalize generated CV transaction: {error}"),
             );
         }
         Ok(())
@@ -187,21 +257,26 @@ impl CvBundleStore {
 }
 
 struct Entry<'a> {
-    filename: &'static str,
+    repository_path: &'static str,
+    staged_name: &'static str,
     bytes: &'a [u8],
 }
 
 impl<'a> Entry<'a> {
-    fn new(filename: &'static str, bytes: &'a [u8]) -> Self {
-        Self { filename, bytes }
+    fn new(repository_path: &'static str, staged_name: &'static str, bytes: &'a [u8]) -> Self {
+        Self {
+            repository_path,
+            staged_name,
+            bytes,
+        }
     }
 
-    fn staged_name(&self) -> String {
-        format!("new-{}", self.filename)
+    fn staged_name(&self) -> &'static str {
+        self.staged_name
     }
 
     fn backup_name(&self) -> String {
-        format!("old-{}", self.filename)
+        format!("old-{}", self.staged_name)
     }
 }
 

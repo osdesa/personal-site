@@ -3,6 +3,10 @@
 - **Status:** Accepted
 - **Date:** 2026-07-17
 
+Stage 2 extends this three-artifact Stage 1 decision with generated Rust data
+and manifest schema 2. See ADR 0004; the immutable download and rollback
+principles here remain in force.
+
 ## Context
 
 The canonical CV is maintained in `osdesa/cv`, while this static website needs

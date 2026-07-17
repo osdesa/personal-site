@@ -6,14 +6,16 @@ use std::{
 };
 
 use personal_site::cv_sync::{
-    CvBundleStore, CvSource, CvSyncError, MANIFEST_FILENAME, PDF_FILENAME, RemoteTag, SyncOutcome,
-    TEX_FILENAME, ValidatedBundle, synchronize,
+    CvBundleStore, CvSource, CvSyncError, GENERATED_CV_PATH, MANIFEST_REPOSITORY_PATH,
+    PDF_FILENAME, PDF_REPOSITORY_PATH, RemoteTag, SyncOutcome, TEX_FILENAME, TEX_REPOSITORY_PATH,
+    ValidatedBundle, synchronize,
 };
 use tempfile::TempDir;
 
 const SHA_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SHA_B: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const PDF: &[u8] = include_bytes!("../public/cv/Hayden-Farrell-CV.pdf");
+const TEX: &str = include_str!("../public/cv/Hayden-Farrell-CV.tex");
 
 #[derive(Clone)]
 struct FakeSource {
@@ -68,8 +70,7 @@ fn tag(name: &str, commit_sha: &str) -> RemoteTag {
 }
 
 fn tex(label: &str) -> Vec<u8> {
-    format!("\\documentclass{{article}}\n\\begin{{document}}\n{label}\n\\end{{document}}\n")
-        .into_bytes()
+    TEX.replacen("Hayden Farrell", label, 1).into_bytes()
 }
 
 fn commit_bundle(root: &Path, version: &str, sha: &str, source: Vec<u8>) {
@@ -78,15 +79,15 @@ fn commit_bundle(root: &Path, version: &str, sha: &str, source: Vec<u8>) {
 }
 
 fn snapshot(root: &Path) -> Vec<(String, Vec<u8>)> {
-    [TEX_FILENAME, PDF_FILENAME, MANIFEST_FILENAME]
-        .into_iter()
-        .map(|filename| {
-            (
-                filename.to_owned(),
-                fs::read(root.join("public").join("cv").join(filename)).unwrap(),
-            )
-        })
-        .collect()
+    [
+        TEX_REPOSITORY_PATH,
+        PDF_REPOSITORY_PATH,
+        GENERATED_CV_PATH,
+        MANIFEST_REPOSITORY_PATH,
+    ]
+    .into_iter()
+    .map(|path| (path.to_owned(), fs::read(root.join(path)).unwrap()))
+    .collect()
 }
 
 #[test]
@@ -118,6 +119,9 @@ fn update_downloads_from_the_selected_commit_and_commits_one_valid_bundle() {
         .unwrap();
     assert_eq!(manifest.tag, "v1.10.0");
     assert_eq!(manifest.commit_sha, SHA_B);
+    let generated = fs::read_to_string(root.path().join(GENERATED_CV_PATH)).unwrap();
+    assert!(generated.contains("pub const SOURCE_TAG: &str = \"v1.10.0\";"));
+    assert!(generated.contains(&format!("pub const SOURCE_COMMIT_SHA: &str = \"{SHA_B}\";")));
     assert_eq!(
         fs::read(root.path().join("public/cv/Hayden-Farrell-CV.tex")).unwrap(),
         tex("new")
@@ -132,7 +136,7 @@ fn unchanged_tag_performs_no_downloads_or_writes() {
     let metadata_before: Vec<_> = before
         .iter()
         .map(|(filename, _)| {
-            fs::metadata(root.path().join("public/cv").join(filename))
+            fs::metadata(root.path().join(filename))
                 .unwrap()
                 .modified()
                 .unwrap()
@@ -148,7 +152,7 @@ fn unchanged_tag_performs_no_downloads_or_writes() {
     let metadata_after: Vec<_> = before
         .iter()
         .map(|(filename, _)| {
-            fs::metadata(root.path().join("public/cv").join(filename))
+            fs::metadata(root.path().join(filename))
                 .unwrap()
                 .modified()
                 .unwrap()
@@ -187,6 +191,30 @@ fn invalid_download_preserves_the_complete_current_version() {
         synchronize(&source, &CvBundleStore::new(root.path())),
         Err(CvSyncError::Validation(_))
     ));
+    assert_eq!(snapshot(root.path()), before);
+}
+
+#[test]
+fn unsupported_latex_preserves_source_pdf_generated_data_and_manifest() {
+    let root = TempDir::new().unwrap();
+    commit_bundle(root.path(), "v1.0.0", SHA_A, tex("current"));
+    let before = snapshot(root.path());
+    let unsupported = String::from_utf8(tex("new"))
+        .unwrap()
+        .replacen(
+            "Developing a user-space",
+            "\\unsupported{value} Developing a user-space",
+            1,
+        )
+        .into_bytes();
+    let source = FakeSource::new(vec![tag("v2.0.0", SHA_B)])
+        .file(SHA_B, TEX_FILENAME, Ok(unsupported))
+        .file(SHA_B, PDF_FILENAME, Ok(PDF.to_vec()));
+
+    let error = synchronize(&source, &CvBundleStore::new(root.path())).unwrap_err();
+
+    assert!(matches!(error, CvSyncError::Validation(_)));
+    assert!(error.to_string().contains("unsupported inline command"));
     assert_eq!(snapshot(root.path()), before);
 }
 
@@ -257,6 +285,7 @@ fn checked_in_cv_bundle_matches_its_provenance_manifest() {
         .expect("the repository must contain a synchronized CV manifest");
 
     assert_eq!(manifest.repository, "osdesa/cv");
-    assert_eq!(manifest.source.filename, TEX_FILENAME);
-    assert_eq!(manifest.pdf.filename, PDF_FILENAME);
+    assert_eq!(manifest.source.path, TEX_REPOSITORY_PATH);
+    assert_eq!(manifest.pdf.path, PDF_REPOSITORY_PATH);
+    assert_eq!(manifest.generated.path, GENERATED_CV_PATH);
 }

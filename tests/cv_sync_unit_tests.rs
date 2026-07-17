@@ -74,23 +74,25 @@ fn pdf_validation_parses_the_document_and_rejects_wrappers_or_truncation() {
 fn manifest_rejects_unknown_or_untrusted_metadata() {
     let json = format!(
         r#"{{
-            "schema_version": 1,
+            "schema_version": 2,
             "repository": "someone/else",
             "tag": "v1.0.0",
             "commit_sha": "{SHA_A}",
-            "source": {{"filename":"Hayden-Farrell-CV.tex","bytes":1,"sha256":"{}"}},
-            "pdf": {{"filename":"Hayden-Farrell-CV.pdf","bytes":1,"sha256":"{}"}}
+            "source": {{"path":"public/cv/Hayden-Farrell-CV.tex","bytes":1,"sha256":"{}"}},
+            "pdf": {{"path":"public/cv/Hayden-Farrell-CV.pdf","bytes":1,"sha256":"{}"}},
+            "generated": {{"path":"src/generated_cv.rs","bytes":1,"sha256":"{}"}}
         }}"#,
         "a".repeat(64),
-        "b".repeat(64)
+        "b".repeat(64),
+        "c".repeat(64)
     );
     let manifest: CvManifest = serde_json::from_str(&json).unwrap();
 
     assert!(manifest.validate_metadata().is_err());
 
     let with_unknown_field = json.replace(
-        "\"schema_version\": 1,",
-        "\"schema_version\": 1, \"unexpected\": true,",
+        "\"schema_version\": 2,",
+        "\"schema_version\": 2, \"unexpected\": true,",
     );
     assert!(serde_json::from_str::<CvManifest>(&with_unknown_field).is_err());
 }

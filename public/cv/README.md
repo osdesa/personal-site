@@ -1,15 +1,16 @@
 # CV source bundle
 
-This directory contains an opaque, versioned copy of the canonical CV release
+This directory contains the versioned source artifacts for the canonical CV release
 from [`osdesa/cv`](https://github.com/osdesa/cv):
 
 - `Hayden-Farrell-CV.tex` is the synchronized source artifact.
 - `Hayden-Farrell-CV.pdf` is the synchronized downloadable artifact.
 - `source-manifest.json` records the upstream tag, immutable commit SHA, byte
-  lengths and SHA-256 digests for both artifacts.
+  lengths and SHA-256 digests for the source, PDF and generated Rust data.
 
-Stage 1 does not parse the TeX into website content or add a new CV viewer. The
-existing site continues to copy the PDF as a static download.
+Stage 2 strictly parses the TeX and transactionally generates
+`src/generated_cv.rs`. The existing site continues to copy the PDF as a static
+download; rendering the generated data is intentionally deferred to Stage 3.
 
 ## Automated synchronization
 
@@ -35,7 +36,8 @@ cargo run --locked --release --features cv-sync --bin sync-cv -- --root .
 
 `GITHUB_TOKEN` is optional for the public upstream repository but recommended
 to avoid anonymous API rate limits. The command prints either the installed
-version or an unchanged message. Commit all three bundle files together.
+version or an unchanged message. Commit the TeX, PDF, generated Rust module and
+manifest together.
 
 ## Safety model
 
@@ -43,13 +45,18 @@ The synchronizer:
 
 1. retrieves every upstream tag page and selects the highest valid SemVer tag;
 2. uses the commit SHA returned for that tag for both raw downloads;
-3. validates bounded UTF-8/TeX structure and parses the bounded PDF;
-4. checks the existing manifest and file hashes before considering it current;
-5. rejects moved tags and semantic-version rollback;
-6. stages and flushes all files in the destination filesystem;
-7. backs up the current files, installs the manifest last, and restores every
+3. validates the bounded PDF and strictly parses the supported LaTeX grammar;
+4. generates a deterministic, statically typed Rust domain value;
+5. checks the existing hashes, then reparses and regenerates the local data
+   before considering it current;
+6. rejects moved tags and semantic-version rollback;
+7. stages and flushes all files in the destination filesystem;
+8. backs up the current files, installs the manifest last, and restores every
    backup if a replacement operation fails.
 
 Network, API, parsing, validation, staging and lock failures happen before any
 committed file is replaced. The last valid checked-in bundle therefore remains
 available for review and deployment.
+
+The supported grammar, typed output, Stage 3 contract and format limitations are
+documented in [`docs/cv-import.md`](../../docs/cv-import.md).

@@ -12,7 +12,7 @@ use tempfile::TempDir;
 
 const SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const PDF: &[u8] = include_bytes!("../public/cv/Hayden-Farrell-CV.pdf");
-const TEX: &[u8] = b"\\documentclass{article}\n\\begin{document}\nCV\n\\end{document}\n";
+const TEX: &[u8] = include_bytes!("../public/cv/Hayden-Farrell-CV.tex");
 
 struct Response {
     expected_target: &'static str,

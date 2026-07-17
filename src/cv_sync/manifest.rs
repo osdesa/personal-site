@@ -4,9 +4,12 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use super::{PDF_FILENAME, TEX_FILENAME, UPSTREAM_REPOSITORY};
+use super::{
+    GENERATED_CV_PATH, PDF_REPOSITORY_PATH, TEX_REPOSITORY_PATH, UPSTREAM_REPOSITORY,
+    generate_cv_module, parse_cv,
+};
 
-const MANIFEST_SCHEMA_VERSION: u32 = 1;
+const MANIFEST_SCHEMA_VERSION: u32 = 2;
 const MAX_TEX_BYTES: usize = 2 * 1024 * 1024;
 const MAX_PDF_BYTES: usize = 20 * 1024 * 1024;
 
@@ -23,8 +26,8 @@ pub struct RemoteTag {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AssetManifest {
-    /// Repository-relative artifact filename.
-    pub filename: String,
+    /// Repository-relative artifact path.
+    pub path: String,
     /// Artifact length in bytes.
     pub bytes: u64,
     /// Lowercase SHA-256 digest.
@@ -47,6 +50,8 @@ pub struct CvManifest {
     pub source: AssetManifest,
     /// Integrity metadata for the PDF artifact.
     pub pdf: AssetManifest,
+    /// Integrity metadata for the generated Rust data module.
+    pub generated: AssetManifest,
 }
 
 /// A downloaded bundle that has passed structural and integrity validation.
@@ -58,22 +63,25 @@ pub struct ValidatedBundle {
     pub tex: Vec<u8>,
     /// Validated PDF bytes.
     pub pdf: Vec<u8>,
+    /// Deterministically generated Rust module bytes.
+    pub generated: Vec<u8>,
 }
 
 impl CvManifest {
     /// Builds deterministic provenance metadata from validated artifact bytes.
-    pub fn from_artifacts(tag: &RemoteTag, tex: &[u8], pdf: &[u8]) -> Self {
+    pub fn from_artifacts(tag: &RemoteTag, tex: &[u8], pdf: &[u8], generated: &[u8]) -> Self {
         Self {
             schema_version: MANIFEST_SCHEMA_VERSION,
             repository: UPSTREAM_REPOSITORY.to_owned(),
             tag: tag.name.clone(),
             commit_sha: tag.commit_sha.clone(),
-            source: AssetManifest::new(TEX_FILENAME, tex),
-            pdf: AssetManifest::new(PDF_FILENAME, pdf),
+            source: AssetManifest::new(TEX_REPOSITORY_PATH, tex),
+            pdf: AssetManifest::new(PDF_REPOSITORY_PATH, pdf),
+            generated: AssetManifest::new(GENERATED_CV_PATH, generated),
         }
     }
 
-    /// Validates schema, provenance, filenames and digest syntax.
+    /// Validates schema, provenance, repository paths and digest syntax.
     pub fn validate_metadata(&self) -> Result<(), String> {
         if self.schema_version != MANIFEST_SCHEMA_VERSION {
             return Err(format!(
@@ -87,35 +95,36 @@ impl CvManifest {
         parse_semantic_tag(&self.tag)
             .ok_or_else(|| format!("manifest tag is not semantic: {}", self.tag))?;
         validate_commit_sha(&self.commit_sha)?;
-        self.source.validate(TEX_FILENAME)?;
-        self.pdf.validate(PDF_FILENAME)?;
+        self.source.validate(TEX_REPOSITORY_PATH)?;
+        self.pdf.validate(PDF_REPOSITORY_PATH)?;
+        self.generated.validate(GENERATED_CV_PATH)?;
         Ok(())
     }
 }
 
 impl AssetManifest {
-    fn new(filename: &str, bytes: &[u8]) -> Self {
+    fn new(path: &str, bytes: &[u8]) -> Self {
         Self {
-            filename: filename.to_owned(),
+            path: path.to_owned(),
             bytes: bytes.len() as u64,
             sha256: sha256_hex(bytes),
         }
     }
 
-    fn validate(&self, expected_filename: &str) -> Result<(), String> {
-        if self.filename != expected_filename {
+    fn validate(&self, expected_path: &str) -> Result<(), String> {
+        if self.path != expected_path {
             return Err(format!(
-                "manifest filename must be {expected_filename}, found {}",
-                self.filename
+                "manifest path must be {expected_path}, found {}",
+                self.path
             ));
         }
         if self.bytes == 0 {
-            return Err(format!("{} must not be empty", self.filename));
+            return Err(format!("{} must not be empty", self.path));
         }
         if !is_lowercase_hex(&self.sha256, 64) {
             return Err(format!(
                 "{} SHA-256 must be 64 lowercase hexadecimal characters",
-                self.filename
+                self.path
             ));
         }
         Ok(())
@@ -132,8 +141,16 @@ impl ValidatedBundle {
         validate_commit_sha(&tag.commit_sha)?;
         validate_tex(&tex)?;
         validate_pdf(&pdf)?;
-        let manifest = CvManifest::from_artifacts(&tag, &tex, &pdf);
-        Ok(Self { manifest, tex, pdf })
+        let source = std::str::from_utf8(&tex).map_err(|_| "TeX source is not UTF-8".to_owned())?;
+        let cv = parse_cv(source).map_err(|error| format!("LaTeX parse failed at {error}"))?;
+        let generated = generate_cv_module(&cv, &tag);
+        let manifest = CvManifest::from_artifacts(&tag, &tex, &pdf, &generated);
+        Ok(Self {
+            manifest,
+            tex,
+            pdf,
+            generated,
+        })
     }
 }
 
