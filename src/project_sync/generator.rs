@@ -72,7 +72,9 @@ fn slice_field(output: &mut String, name: &str, values: &[String]) {
         .join(", ");
     let inline_field = format!("        {name}: &[{inline_values}],");
 
-    if inline_field.chars().count() <= 100 {
+    // Keep a margin below rustfmt's wrapping limit so generated output stays
+    // stable when a project contains a moderately long technology list.
+    if inline_field.chars().count() <= 88 {
         writeln!(output, "{inline_field}").expect("writing to a string cannot fail");
         return;
     }
