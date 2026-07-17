@@ -14,25 +14,10 @@ pub fn ProjectsPage() -> impl IntoView {
         <Title text=metadata.title />
         <Meta name="description" content=metadata.description />
 
-        <section class="page-hero page-hero--compact">
-            <Container>
-                <p class="eyebrow">"Projects / Selected work"</p>
-                <div class="page-hero__grid">
-                    <h1>"Work explained with enough context to matter."</h1>
-                    <div>
-                        <p class="page-hero__lead">"Selected engineering work, synchronized from GitHub and presented with the context that matters."</p>
-                        <p>"Repository metadata provides the baseline; project-specific summaries and highlights add detail where useful."</p>
-                    </div>
-                </div>
-            </Container>
-        </section>
-
         <section class="section" aria-labelledby="selected-projects-title">
             <Container>
                 <div class="project-index-header">
-                    <h2 id="selected-projects-title" class="project-index-header__title">
-                        {format!("{} selected projects", projects.len())}
-                    </h2>
+                    <h1 id="selected-projects-title" class="project-index-header__title">"Projects"</h1>
                     <p>"Newest first"</p>
                 </div>
                 <div class="project-grid">
