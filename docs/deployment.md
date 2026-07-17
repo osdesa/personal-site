@@ -27,11 +27,10 @@ normal deployment build runs.
 ## Provider decision
 
 The project should evaluate Cloudflare Pages, Netlify and GitHub Pages when
-hosting is ready. Cloudflare Pages and Netlify are the most straightforward
-choices for a private repository and SPA rewrite support. GitHub Pages remains
-an option only after confirming that private-repository publishing is available
-for the account and that its routing configuration meets the application’s
-needs.
+hosting is ready. All three support deployment from the public repository.
+Cloudflare Pages and Netlify are the most straightforward choices where SPA
+rewrite support is required. GitHub Pages remains an option after confirming
+that its routing configuration meets the application’s needs.
 
 Choose a provider before adding deployment credentials, domain records or a
 deployment workflow. This keeps the repository provider-neutral and avoids
