@@ -4,6 +4,7 @@
 /styles/generated.css
 /playwright-report/
 /test-results/
+/.lighthouseci/
 
 # Local AI assistant configuration
 /AGENTS.md

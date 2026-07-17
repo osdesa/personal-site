@@ -1,25 +1,24 @@
 use leptos::prelude::*;
 use leptos_meta::{Meta, Title};
 
-use crate::components::{ButtonLink, Container, ProjectCard};
+use crate::components::{ButtonLink, Container, ProjectCard, remove_static_description_on_mount};
 use crate::content::portfolio;
 use crate::cv_presentation::RichTextView;
 use crate::generated_cv::CV as GENERATED_CV;
 use crate::generated_projects::PROJECTS as GENERATED_PROJECTS;
-use crate::routes::{CV, HOME, PROJECTS, title_for_path};
+use crate::routes::{CV, HOME, PROJECTS, metadata_for_path};
 
 #[component]
 pub fn HomePage() -> impl IntoView {
     let content = portfolio();
     let profile = content.profile;
     let imported_profile = &GENERATED_CV.profile;
+    let metadata = metadata_for_path(HOME.path);
+    remove_static_description_on_mount();
 
     view! {
-        <Title text=title_for_path(HOME.path) />
-        <Meta
-            name="description"
-            content="Hayden Farrell - software engineer and computer science student."
-        />
+        <Title text=metadata.title />
+        <Meta name="description" content=metadata.description />
 
         <section class="home-page">
             <div class="container home-page__inner">

@@ -5,12 +5,14 @@
   "scripts": {
     "css:build": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --minify",
     "css:watch": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --watch",
-    "test:browser": "npm run css:build && playwright test"
+    "test:browser": "npm run css:build && playwright test",
+    "test:performance": "node ./scripts/performance-audit.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/cli": "4.3.3",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "4.3.3",
+    "lighthouse": "13.3.0"
   }
 }

@@ -33,6 +33,7 @@ and deployment-provider configuration are intentionally outside this milestone.
 - [Leptos Router](https://docs.rs/leptos_router/) for browser routing
 - [Tailwind CSS](https://tailwindcss.com/) 4 with local source CSS
 - [Trunk](https://trunkrs.dev/) for the WebAssembly development server and bundle
+- Lighthouse for release-bundle quality budgets
 - GitHub Actions for formatting, linting, tests and production builds
 
 No backend is needed for the current content-focused site. See
@@ -80,6 +81,7 @@ Generate minified CSS and the optimized WebAssembly bundle:
 npm run css:build
 trunk build --release
 npm run test:browser
+npm run test:performance
 ```
 
 The deployable static output is written to `dist/`. The native Cargo release
@@ -104,6 +106,8 @@ cargo build --release --features cv-sync --bin sync-cv
 cargo build --release --features project-sync --bin sync-projects
 npm run css:build
 trunk build --release
+npm run test:browser
+npm run test:performance
 ```
 
 Rust tests intentionally target stable logic: content integrity, unique identifiers,
@@ -168,9 +172,12 @@ domain types. Add a component only when a semantic pattern repeats. Parser or
 generator changes are required only when the upstream document grammar or
 domain meaning changes, not for layout, copy framing, or styling changes.
 
-Update route-specific browser titles in
-[`src/routes.rs`](src/routes.rs). Update the default HTML description and title
-in `index.html` as a no-Wasm fallback.
+Update route-specific browser titles and descriptions in
+[`src/routes.rs`](src/routes.rs). `index.html` contains the deliberately
+site-wide no-Wasm crawler fallback; it must not claim route-specific sharing
+previews before a canonical production origin and rendering strategy are
+selected. See [`docs/web-quality.md`](docs/web-quality.md) for the metadata and
+performance operations contract.
 
 ### Synchronizing portfolio projects
 

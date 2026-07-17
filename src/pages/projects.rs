@@ -1,15 +1,18 @@
 use leptos::prelude::*;
 use leptos_meta::{Meta, Title};
 
-use crate::components::{Container, ProjectCard};
+use crate::components::{Container, ProjectCard, remove_static_description_on_mount};
 use crate::generated_projects::PROJECTS as projects;
-use crate::routes::{PROJECTS, title_for_path};
+use crate::routes::{PROJECTS, metadata_for_path};
 
 #[component]
 pub fn ProjectsPage() -> impl IntoView {
+    let metadata = metadata_for_path(PROJECTS.path);
+    remove_static_description_on_mount();
+
     view! {
-        <Title text=title_for_path(PROJECTS.path) />
-        <Meta name="description" content="Selected software engineering projects and technical case studies." />
+        <Title text=metadata.title />
+        <Meta name="description" content=metadata.description />
 
         <section class="page-hero page-hero--compact">
             <Container>

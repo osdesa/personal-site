@@ -37,6 +37,13 @@ Choose a provider before adding deployment credentials, domain records or a
 deployment workflow. This keeps the repository provider-neutral and avoids
 unused secrets.
 
+The same decision must provide the canonical public origin. Only then should
+deployment add absolute canonical and Open Graph URLs, and create `robots.txt`
+and `sitemap.xml` for the three canonical public routes. The current static
+metadata is deliberately site-wide because non-rendering crawlers do not
+execute the client application; the selected generic sharing metadata does not
+require a rendering strategy.
+
 ## Implementation checklist
 
 1. Select the provider and create the hosting project connected to `main`.

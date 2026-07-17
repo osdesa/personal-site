@@ -1,18 +1,19 @@
 use leptos::prelude::*;
 use leptos_meta::{Meta, Title};
 
+use crate::components::remove_static_description_on_mount;
 use crate::cv_presentation::{CV_PDF_URL, CvDocument};
 use crate::generated_cv::{CV as GENERATED_CV, SOURCE_COMMIT_SHA, SOURCE_TAG};
-use crate::routes::{CV, title_for_path};
+use crate::routes::{CV, metadata_for_path};
 
 #[component]
 pub fn CvPage() -> impl IntoView {
+    let metadata = metadata_for_path(CV.path);
+    remove_static_description_on_mount();
+
     view! {
-        <Title text=title_for_path(CV.path) />
-        <Meta
-            name="description"
-            content="Hayden Farrell's generated curriculum vitae: experience, education, projects and technical skills."
-        />
+        <Title text=metadata.title />
+        <Meta name="description" content=metadata.description />
 
         <CvDocument
             cv=Some(&GENERATED_CV)

@@ -102,7 +102,9 @@ non-interactive elements with `aria-disabled`, never clickable placeholders.
 Cards contain artwork, visibility/date/status metadata, heading, summary,
 technology badges, optional highlights and explicit repository/demo links.
 Optional elements are omitted rather than rendered empty. A hidden private
-repository uses a clear non-link indicator.
+repository uses a clear non-link indicator. Artwork is controlled local content
+with explicit dimensions and a reserved 608:272 aspect ratio. It is decorative;
+if it fails or is slow, the title and written project context remain available.
 
 ### Section headings
 

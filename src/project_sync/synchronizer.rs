@@ -238,8 +238,8 @@ pub fn normalize_projects(
         let image_url = metadata
             .image
             .and_then(non_blank)
+            .filter(|path| is_controlled_image_path(path))
             .unwrap_or_else(|| DEFAULT_PROJECT_IMAGE.to_owned());
-        validate_image_url(&image_url)?;
         let show_repository = metadata.show_repository.unwrap_or(!repository.private);
         let id = repository
             .full_name
@@ -307,9 +307,6 @@ fn validate_metadata(metadata: &PortfolioMetadata) -> Result<(), ProjectSyncErro
     if let Some(url) = metadata.demo_url.as_deref() {
         validate_https_url(url, "demo URL")?;
     }
-    if let Some(url) = metadata.image.as_deref() {
-        validate_image_url(url)?;
-    }
     Ok(())
 }
 
@@ -364,12 +361,10 @@ fn validate_https_url(value: &str, label: &str) -> Result<(), ProjectSyncError> 
     Ok(())
 }
 
-fn validate_image_url(value: &str) -> Result<(), ProjectSyncError> {
-    if value.starts_with('/') && !value.starts_with("//") && !value.chars().any(char::is_whitespace)
-    {
-        return Ok(());
-    }
-    validate_https_url(value, "image URL")
+fn is_controlled_image_path(value: &str) -> bool {
+    value.starts_with("/images/")
+        && !value.starts_with("//")
+        && !value.chars().any(char::is_whitespace)
 }
 
 fn non_empty(value: Option<String>, fallback: impl FnOnce() -> String) -> String {
