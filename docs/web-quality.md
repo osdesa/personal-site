@@ -44,10 +44,12 @@ npm run test:performance
 The repository-owned runner starts a local static SPA server, audits `/`,
 `/projects` and `/cv` three times with the desktop preset, and evaluates median
 results. The reports are written to the ignored `.lighthouseci/` directory
-locally. The GitHub-hosted Lighthouse step is temporarily disabled because its
-Chrome process cannot establish a debugging connection on the Ubuntu runner;
-the audit remains available locally while that runner integration is revisited.
-A deployed audit is still required once hosting, HTTPS and cache headers exist.
+locally. On every `main` build, CI runs the same audit against the exact `dist/`
+artifact produced by the production Trunk build. It explicitly selects the
+cached Playwright Chromium executable, uses CI-safe headless flags, and retries
+one failed browser launch before treating the check as an infrastructure failure.
+Budget failures are never retried or averaged away. A deployed audit is still
+required once hosting, HTTPS and cache headers exist.
 
 The initial local release baseline on 17 July 2026 was a 0.32 s FCP and 0.68 s
 LCP median across the nine route/runs; the initial transfer was 480,175 bytes
@@ -76,3 +78,18 @@ On Windows, Lighthouse can write a complete JSON report but fail while cleaning
 up Chrome's temporary profile. The runner accepts that platform-specific exit
 only when the report exists; malformed or missing reports still fail. A
 deployed audit is still required after hosting adds HTTPS and cache headers.
+
+## CI efficiency
+
+Pull requests run the full Rust, CSS, production Trunk and browser-accessibility
+coverage, but do not run the nine Lighthouse navigations. The performance gate
+runs on `main`, where it protects the integration artifact without making review
+feedback unnecessarily slow. The native quality job and web-build job start in
+parallel. Browser and performance jobs consume the one-day `dist/` artifact, so
+there is one CSS build and one Trunk build per workflow run rather than a second
+release compilation for browser checks.
+
+Cargo build data, npm's package-download cache and versioned Playwright Chromium
+are cached. These caches are accelerators, not inputs to correctness: each Node
+job still uses `npm ci`, and all browser checks run against the downloaded
+artifact. See ADR 0009 for the complete job and cache contract.

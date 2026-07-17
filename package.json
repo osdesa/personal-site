@@ -5,7 +5,8 @@
   "scripts": {
     "css:build": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --minify",
     "css:watch": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --watch",
-    "test:browser": "npm run css:build && playwright test",
+    "test:browser": "npm run css:build && trunk build --release && npm run test:browser:dist",
+    "test:browser:dist": "playwright test",
     "test:performance": "node ./scripts/performance-audit.mjs"
   },
   "devDependencies": {

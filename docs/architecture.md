@@ -230,8 +230,8 @@ than browser markup snapshots:
 - integrity of the checked-in CV bundle against its manifest
 
 CI additionally compiles every target with warnings denied and builds the actual
-Wasm application. Playwright serves the release-style Trunk bundle, scans the
-home, projects, CV and not-found routes with axe, and checks the mobile menu's
+Wasm application. Playwright serves the built static SPA, scans the home,
+projects, CV and not-found routes with axe, and checks the mobile menu's
 keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
 workflow repeats the native quality suite before opening an artifact update pull
 request.
@@ -241,6 +241,24 @@ after the release build, audits the three public routes three times, and
 enforces median category, transfer-size and layout-shift budgets. It is a
 development/CI dependency only; no Lighthouse, analytics or third-party script
 enters the browser runtime.
+
+## CI artifact and efficiency boundary
+
+The CI workflow separates native Rust validation from the WebAssembly/CSS build
+because the targets use different compilation outputs and neither needs to wait
+for the other. The web-build job produces `dist/` once and uploads it as a
+short-lived workflow artifact. Browser accessibility and the `main`-only
+Lighthouse budget job each download that exact output and serve it through
+`scripts/static-spa-server.mjs`; they do not run Trunk or Tailwind again.
+
+Cargo caches may retain native and Wasm target directories because Cargo keeps
+them in target-specific subdirectories. npm caches only downloaded packages,
+and the Playwright cache contains only the versioned Chromium browser selected
+by `package-lock.json`. `npm ci` remains mandatory in every Node job, so no
+cached dependency tree is trusted as an installed workspace. A failed browser
+or performance check therefore reports against the same release artifact that
+passed the web-build job, while a fresh CI runner can still rebuild everything
+from the lockfiles.
 
 ## Extension points
 

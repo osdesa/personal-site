@@ -11,7 +11,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "trunk serve --release --port 8081",
+    command: "node ./scripts/static-spa-server.mjs --port 8081",
     reuseExistingServer: false,
     timeout: 180_000,
     url: "http://127.0.0.1:8081",
