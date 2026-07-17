@@ -1,0 +1,62 @@
+name: Synchronize CV
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: synchronize-cv
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    name: Synchronize highest semantic CV release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+
+      - name: Cache Rust build data
+        uses: Swatinem/rust-cache@v2
+
+      - name: Synchronize validated CV bundle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: cargo run --locked --release --features cv-sync --bin sync-cv -- --root "$GITHUB_WORKSPACE"
+
+      - name: Verify synchronized repository
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets --all-features -- -D warnings
+          cargo test --locked --all-targets --all-features
+          cargo build --locked --release --features cv-sync --bin sync-cv
+
+      - name: Create or update CV synchronization pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.CV_SYNC_TOKEN || github.token }}
+          add-paths: |
+            public/cv/Hayden-Farrell-CV.tex
+            public/cv/Hayden-Farrell-CV.pdf
+            public/cv/source-manifest.json
+          branch: automation/cv-sync
+          delete-branch: true
+          commit-message: "chore(cv): synchronize source release"
+          title: "chore(cv): synchronize source release"
+          body: |
+            Synchronizes the highest semantic-version release from `osdesa/cv`.
+
+            The Rust synchronizer resolved the tag to an immutable commit, downloaded
+            and validated both artifacts, and updated the provenance manifest.

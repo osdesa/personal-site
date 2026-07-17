@@ -5,12 +5,36 @@ edition = "2024"
 description = "A responsive personal portfolio built with Rust and Leptos"
 license = "MIT"
 publish = false
+default-run = "personal-site"
+
+[[bin]]
+name = "personal-site"
+path = "src/main.rs"
+
+[[bin]]
+name = "sync-cv"
+path = "src/bin/sync_cv.rs"
+required-features = ["cv-sync"]
+
+[features]
+default = []
+cv-sync = []
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
 leptos = { version = "0.8.15", features = ["csr"] }
 leptos_meta = "0.8.5"
 leptos_router = "0.8.11"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+lopdf = { version = "0.44.0", default-features = false }
+semver = "1.0.28"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+sha2 = "0.11.0"
+tempfile = "3.27.0"
+thiserror = "2.0.18"
+ureq = { version = "3.3.0", features = ["json"] }
 
 [profile.release]
 codegen-units = 1

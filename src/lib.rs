@@ -7,5 +7,7 @@
 pub mod app;
 mod components;
 pub mod content;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod cv_sync;
 mod pages;
 pub mod routes;

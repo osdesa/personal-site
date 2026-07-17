@@ -29,6 +29,21 @@ This is a small layered architecture rather than an enterprise framework:
 - **Domain data:** the immutable models and portfolio values in `content.rs`
 - **Infrastructure boundary:** Trunk and the static `public/` directory
 
+The repository also contains a native build-time automation path. It is not
+linked into the WebAssembly target:
+
+```text
+GitHub tag API ----> semantic selection ----> immutable commit SHA
+                                                   |
+GitHub raw files ---> bounded validation -----------+
+                                                   |
+                                                   v
+                              staged local transaction + manifest
+                                                   |
+                                                   v
+                                      public/cv source bundle
+```
+
 Content types do not depend on Leptos. Presentation reads the data and renders
 it, while browser-specific behaviour is isolated from those data structures.
 
@@ -46,7 +61,8 @@ class hides the global footer and document overflow only while that route is
 mounted. Interior routes retain normal document scrolling and the shared footer.
 
 There are no network requests, environment variables, credentials or server
-processes at runtime.
+processes in the deployed website runtime. The separate native `sync-cv` tool
+uses GitHub only during local or scheduled repository maintenance.
 
 ## Module responsibilities
 
@@ -94,6 +110,25 @@ Is the single styling source. Tailwind 4 supplies its build pipeline and token
 utilities; semantic CSS variables implement the permanent dark palette and reusable
 component rules. `styles/generated.css` is generated and ignored.
 
+### `src/cv_sync/` and `src/bin/sync_cv.rs`
+
+The native-only CV synchronization subsystem has four responsibilities:
+
+- `manifest` owns semantic tag selection, strict provenance metadata, hashing,
+  and bounded TeX/PDF validation;
+- `github` adapts the paginated GitHub tag API and raw files to the small
+  `CvSource` boundary;
+- `synchronizer` compares a fully validated local bundle with upstream and
+  rejects moved tags or version rollback before downloading changes;
+- `store` stages and flushes a candidate beside its destination, backs up the
+  current bundle, installs the manifest last, and rolls back reported failures.
+
+The thin binary supplies the production GitHub source and repository-root
+configuration. `cv_sync` and its native dependencies are excluded from the
+`wasm32` target, so synchronization concerns cannot enter the browser bundle.
+The TeX remains opaque during Stage 1; `content.rs` continues to own displayed
+portfolio data.
+
 ## Routing and static hosting
 
 Leptos Router handles `/`, `/projects` and `/cv`, with a fallback view for
@@ -114,10 +149,16 @@ than browser markup snapshots:
 - complete CV sections and absence of placeholder markers
 - featured-project selection
 - unique internal routes and page titles
+- semantic tag selection, manifest and artifact validation
+- GitHub transport behavior against a deterministic local HTTP server
+- unchanged, update, corruption, network, lock, tag-movement and rollback paths
+- integrity of the checked-in CV bundle against its manifest
 
 CI additionally compiles every target with warnings denied and builds the actual
-Wasm application. Visual and end-to-end browser automation can be added when
-content stabilises and regression value exceeds maintenance cost.
+Wasm application. The scheduled CV workflow repeats the native quality suite
+before opening an artifact update pull request. Visual and end-to-end browser
+automation can be added when content stabilises and regression value exceeds
+maintenance cost.
 
 ## Extension points
 

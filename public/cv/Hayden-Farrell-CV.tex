@@ -1,0 +1,194 @@
+%-------------------------
+% Resume in Latex
+% Author : Jake
+% % License : MIT
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+
+%----------FONT OPTIONS----------
+% sans-serif
+% \usepackage[sfdefault]{FiraSans}
+% \usepackage[sfdefault]{roboto}
+% \usepackage[sfdefault]{noto-sans}
+% \usepackage[default]{sourcesanspro}
+
+% serif
+% \usepackage{CormorantGaramond}
+% \usepackage{charter}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+%----------HEADING----------
+
+\begin{center}
+    \textbf{\Huge \scshape Hayden Farrell} \\ \vspace{1pt}
+    \href{mailto:haydenfarrell@outlook.com}{\underline{haydenfarrell@outlook.com}} $|$ 
+    \href{https://linkedin.com/in/...}{\underline{linkedin/haydenfarrell}} $|$
+    \href{https://github.com/osdesa}{\underline{github.com/osdesa}}
+\end{center}
+
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {University of Nottingham}{Nottingham, UK}
+      {BSc Computer Science with a Year in Industry (Predicted First-Class Honours)}{Aug. 2023 -- May 2027}
+    \resumeSubheading
+      {Aquinas College}{Manchester, UK}
+      {Mathematics (A), Computer Science (A), Further Mathematics (A)}{Aug. 2021 -- May 2023}
+  \resumeSubHeadingListEnd
+
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Software Engineer part time}{Jul. 2026 -- Present}
+      {Leonardo UK}{Newcastle upon Tyne, UK}
+      \resumeItemListStart
+        \resumeItem{One of only three undergraduate software engineers offered a part-time role while returning to university}
+        \resumeItem{Developing safety-critical real-time software remotely as part of an Agile engineering team while completing my degree}
+        \resumeItem{Balancing both university and work commitments to ensure deadlines are met}
+        \resumeItem{Maintain and monitor Jenkins CI pipelines to ensure reliable build and test execution alongside ongoing software development.}
+    \resumeItemListEnd
+
+    \resumeSubheading
+      {Industrial Placement Software Engineer}{June 2025 -- July 2026}
+      {Leonardo UK}{Newcastle upon Tyne, UK}
+      \resumeItemListStart
+        \resumeItem{Developed and maintained safety-critical real-time software within an Agile engineering team following DO-178C development practices}
+        \resumeItem{Led the design and implementation of a synthetic testing framework in C++ for complex embedded software, reducing dependency on hardware integration during development.}
+        \resumeItem{Led design workshops with over 10 engineers including principal and lead software engineers to get stakeholder requirements and feedback on software design}
+        \resumeItem{Developed a custom test application used by over 10 engineers across teams to allow for quick developer testing of a complex engineering system}
+        \resumeItem{Created a custom tool to allow the visualisation of large amounts of realtime mathematical data to allow for quick analysis of complex engineering systems}  
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+
+%-----------PROJECTS-----------
+\section{Projects}
+    \resumeSubHeadingListStart
+      \resumeProjectHeading
+          {\textbf{Atlas} $|$ \emph{C++, Vulkan, CMake, Python}}{Current Project}
+          \resumeItemListStart
+            \resumeItem{Developing a user-space heterogeneous task scheduler supporting CPU workloads and preemptive-style GPU scheduling through cooperative execution slices using Vulkan.}
+            \resumeItem{Designed and implemented multiple scheduling policies, including FIFO, priority-based and round-robin, with benchmarking to evaluate latency, throughput and fairness}
+            \resumeItem{Built a Vulkan compute backend enabling fine-grained control over GPU work submission, profiling execution using timeline visualisation and performance metrics}
+            \resumeItem{Built an automated benchmarking framework to evaluate scheduling overhead and performance across different workloads, including CPU-bound, GPU-bound and mixed workloads}
+        \resumeItemListEnd
+      \resumeProjectHeading
+          {\textbf{\href{https://github.com/osdesa/Blocky}{\underline{Blocky}}} $|$ \emph{C++, OpenGL, GLSL, Python, CMake}}{}
+          \resumeItemListStart
+            \resumeItem{Developed a voxel-based 3D game engine in C++ using OpenGL and GLSL}
+            \resumeItem{Achieved a stable 60 FPS while rendering over 100,000 voxels with real-time lighting}
+            \resumeItem{Created a custom linear algebra library to support vector and matrix mathematics required for 3D graphics}
+          \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+
+
+%
+%-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: C++, C, Python, Java, Matlab, VHDL, ARM, Rust, Shell Scripting, CMake } \\
+     \textbf{Libraries}{: OpenGL, Vulkan, Flask } \\
+     \textbf{Tools}{: Git, Docker, VS Code, Visual Studio, IntelliJ, Jenkins, MISRA, PolySpace } \\
+     \textbf{Training/Certificates}{: DO-178C Certified, C++ Training } \\
+     \textbf{Hobbies}{: Climbing/Bouldering, Leadership, Drones }
+    }}
+ \end{itemize}
+
+
+%-------------------------------------------
+\end{document}

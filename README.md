@@ -15,6 +15,8 @@ The initial design and CV-content milestones are complete. The site includes:
 - reusable navigation, project, skill, timeline and layout components
 - central design tokens and typed portfolio data
 - professional experience, education, and skills sourced from the current CV
+- a transactional daily CV source/PDF synchronization pipeline with immutable
+  provenance
 - focused Rust tests and a production CI build
 
 Authentication, a database, CMS, blog, analytics, search, contact-form backend
@@ -93,6 +95,7 @@ cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings
 cargo test --all-targets --all-features
 cargo build --release
+cargo build --release --features cv-sync --bin sync-cv
 npm run css:build
 trunk build --release
 ```
@@ -107,16 +110,18 @@ not contain inline `#[cfg(test)]` sections.
 
 ```text
 .
-├── .github/workflows/ci.yml    # Continuous integration
+├── .github/workflows/         # CI and scheduled CV synchronization
 ├── docs/                       # Architecture, design system and ADRs
 ├── public/                     # Static files copied into the bundle
 ├── src/
 │   ├── app.rs                  # Router composition
 │   ├── components/             # Reusable presentation components
 │   ├── content.rs              # All editable portfolio data and models
+│   ├── cv_sync/                # Native CV synchronization boundaries
 │   ├── lib.rs                  # Shared library boundary for app and tests
 │   ├── pages/                  # Route-level views
 │   ├── routes.rs               # Canonical public route metadata
+│   ├── bin/sync_cv.rs          # Native synchronization CLI
 │   └── main.rs                 # Browser application entry point
 ├── styles/input.css            # Tokens and component styling source
 ├── tests/                      # All Rust tests, including unit-style tests
@@ -155,11 +160,24 @@ Add one `Project` value to the `PROJECTS` slice in `src/content.rs`:
 
 The integrity tests catch duplicate/invalid identifiers and incomplete links.
 
-### Updating the CV PDF
+### Synchronizing the CV source release
 
-Replace `public/cv/Hayden-Farrell-CV.pdf` while retaining the filename, then run
-the production build and verify the download control. If the filename changes,
-update `profile.cv_download_url` in `src/content.rs` at the same time.
+The canonical TeX and PDF are published as semantic-version tags in
+[`osdesa/cv`](https://github.com/osdesa/cv). A daily GitHub Actions workflow
+selects the highest version, resolves it to a commit SHA, validates both files,
+and opens a pull request containing the complete source bundle and provenance
+manifest. Stage 1 stores these artifacts without parsing the TeX or deriving
+website content from it.
+
+Run the same operation locally with:
+
+```text
+cargo run --locked --release --features cv-sync --bin sync-cv -- --root .
+```
+
+The command is a no-op when the manifest already names the selected tag and SHA.
+See [`public/cv/README.md`](public/cv/README.md) for validation, failure recovery,
+workflow permissions, and manual operation details.
 
 ## Continuous integration
 
@@ -173,6 +191,11 @@ update `profile.cv_download_url` in `src/content.rs` at the same time.
   frontend tooling, CSS generation, formatting, Clippy, tests, a native release
   build and the production WebAssembly bundle.
 
+`.github/workflows/sync-cv.yml` runs daily at 05:17 UTC and on manual dispatch.
+It executes the release synchronizer, runs formatting, Clippy, tests and a
+release tool build, then creates or updates `automation/cv-sync` only when the
+validated bundle differs. It never pushes source artifacts directly to `main`.
+
 Cargo and npm build data are cached where those tools are used. Pull request
 runs supersede stale runs for the same pull request, while each `main` commit has
 an independent full-build run.
@@ -183,6 +206,7 @@ an independent full-build run.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
 - [`docs/adr/0002-event-specific-ci.md`](docs/adr/0002-event-specific-ci.md) records the event-specific CI strategy.
+- [`docs/adr/0003-transactional-cv-synchronization.md`](docs/adr/0003-transactional-cv-synchronization.md) records the CV provenance and transaction design.
 
 ## Future work
 

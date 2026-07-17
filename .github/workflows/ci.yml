@@ -43,6 +43,9 @@ jobs:
       - name: Run tests
         run: cargo test --all-targets --all-features
 
+      - name: Build CV synchronizer
+        run: cargo build --release --features cv-sync --bin sync-cv
+
   main-build:
     name: Main quality and production build
     if: github.event_name == 'push'
