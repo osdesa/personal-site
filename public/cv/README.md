@@ -9,8 +9,9 @@ from [`osdesa/cv`](https://github.com/osdesa/cv):
   lengths and SHA-256 digests for the source, PDF and generated Rust data.
 
 Stage 2 strictly parses the TeX and transactionally generates
-`src/generated_cv.rs`. The existing site continues to copy the PDF as a static
-download; rendering the generated data is intentionally deferred to Stage 3.
+`src/generated_cv.rs`. Stage 3 renders that generated value directly and Trunk
+copies this directory so the matching PDF is served at
+`/cv/Hayden-Farrell-CV.pdf`.
 
 ## Automated synchronization
 
@@ -58,5 +59,5 @@ Network, API, parsing, validation, staging and lock failures happen before any
 committed file is replaced. The last valid checked-in bundle therefore remains
 available for review and deployment.
 
-The supported grammar, typed output, Stage 3 contract and format limitations are
+The supported grammar, typed output, presentation contract and format limitations are
 documented in [`docs/cv-import.md`](../../docs/cv-import.md).

@@ -3,12 +3,15 @@ use leptos_meta::{Meta, Title};
 
 use crate::components::ButtonLink;
 use crate::content::portfolio;
+use crate::cv_presentation::RichTextView;
+use crate::generated_cv::CV as GENERATED_CV;
 use crate::routes::{CV, HOME, PROJECTS, title_for_path};
 
 #[component]
 pub fn HomePage() -> impl IntoView {
     let content = portfolio();
     let profile = content.profile;
+    let imported_profile = &GENERATED_CV.profile;
 
     view! {
         <Title text=title_for_path(HOME.path) />
@@ -20,7 +23,7 @@ pub fn HomePage() -> impl IntoView {
         <section class="home-page">
             <div class="container home-page__inner">
                 <div class="home-page__intro">
-                    <h1>{profile.name}</h1>
+                    <h1>{imported_profile.full_name.as_ref()}</h1>
                     <p class="home-page__role">{profile.role}</p>
                     <p class="home-page__summary">{profile.home_intro}</p>
 
@@ -31,21 +34,17 @@ pub fn HomePage() -> impl IntoView {
                 </div>
 
                 <ul class="home-socials" aria-label="Professional profiles">
-                    {content.social_links.iter().map(|link| {
-                        let opens_new_tab = !link.url.starts_with("mailto:");
-                        view! {
-                            <li>
-                                <a
-                                    href=link.url
-                                    target=opens_new_tab.then_some("_blank")
-                                    rel=opens_new_tab.then_some("noreferrer")
-                                >
-                                    {link.label}
-                                    <span class="sr-only">{if opens_new_tab { " (opens in a new tab)" } else { "" }}</span>
-                                </a>
-                            </li>
-                        }
+                    {imported_profile.social_links.iter().map(|link| view! {
+                        <li>
+                            <a href=link.url.as_ref() target="_blank" rel="noreferrer">
+                                <RichTextView text=&link.label />
+                                <span class="sr-only">" (opens in a new tab)"</span>
+                            </a>
+                        </li>
                     }).collect_view()}
+                    <li>
+                        <a href=format!("mailto:{}", imported_profile.contact.email)>"Email"</a>
+                    </li>
                 </ul>
             </div>
         </section>

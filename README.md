@@ -1,20 +1,22 @@
 # Personal portfolio
 
 A polished, responsive personal website and software engineering portfolio.
-The application is built in Rust with Leptos and uses a small typed content
-model populated from Hayden Farrell's professional CV.
+The application is built in Rust with Leptos. Its CV is generated from a
+validated, versioned upstream release rather than maintained by hand.
 
 ## Current status
 
-The initial design and CV-content milestones are complete. The site includes:
+The initial design and automated CV presentation milestones are complete. The
+site includes:
 
 - Home, Projects, CV and accessible not-found routes
 - a fixed, non-scrolling homepage with minimal copy and no profile imagery
 - responsive desktop, tablet and mobile layouts
 - a permanent dark charcoal-and-grey visual system
-- reusable navigation, project, skill, timeline and layout components
+- reusable navigation, project, CV-timeline, safe-rich-text and layout components
 - central design tokens and typed portfolio data
-- professional experience, education, and skills sourced from the current CV
+- generated profile, contact, experience, education and skill content with
+  visible source provenance
 - a transactional daily CV source/PDF importer with immutable provenance,
   strict LaTeX parsing and generated static Rust data
 - focused Rust tests and a production CI build
@@ -116,8 +118,9 @@ not contain inline `#[cfg(test)]` sections.
 ├── src/
 │   ├── app.rs                  # Router composition
 │   ├── components/             # Reusable presentation components
-│   ├── content.rs              # Current presentation content and models
+│   ├── content.rs              # Non-CV editorial and portfolio content
 │   ├── cv.rs                   # Imported CV domain model and safe rich text
+│   ├── cv_presentation.rs      # Generated CV Leptos presentation
 │   ├── cv_sync/                # Native CV import/synchronization boundaries
 │   ├── generated_cv.rs         # Transactionally generated static CV data
 │   ├── lib.rs                  # Shared library boundary for app and tests
@@ -139,12 +142,22 @@ the external test files in `tests/`, which are organised by responsibility.
 
 ## Updating portfolio content
 
-Displayed profile, social, project, skill, experience and education content
-remains in [`src/content.rs`](src/content.rs) through Stage 2. The automated CV
-representation is available separately as `generated_cv::CV`; Stage 3 should
-map or render that typed data rather than hand-copying future CV changes.
-Project entries remain sample content until the later Projects-page milestone.
-Route-level framing copy remains in `src/pages/`.
+[`src/generated_cv.rs`](src/generated_cv.rs) is the single source of truth for
+displayed identity, contact, professional links, experience, education, CV
+technical skills and source provenance. Imported CV projects remain in the
+generated model for document fidelity but are intentionally not displayed on
+the CV page because `/projects` is the dedicated project presentation. The
+generated file is automation-owned; do not edit it or copy its values into page
+components. [`src/content.rs`](src/content.rs) contains only non-CV homepage
+copy and the separate Projects-page catalogue. Project entries remain sample
+content until the later Projects-page milestone. Route-level framing copy
+remains in `src/pages/`.
+
+Extend CV presentation in
+[`src/cv_presentation.rs`](src/cv_presentation.rs) by composing the existing
+domain types. Add a component only when a semantic pattern repeats. Parser or
+generator changes are required only when the upstream document grammar or
+domain meaning changes, not for layout, copy framing, or styling changes.
 
 Update route-specific browser titles in
 [`src/routes.rs`](src/routes.rs). Update the default HTML description and title
@@ -180,8 +193,12 @@ cargo run --locked --release --features cv-sync --bin sync-cv -- --root .
 
 The command is a no-op only when the manifest identifies the selected tag/SHA,
 all hashes match, and reparsing the local TeX reproduces the generated module
-byte for byte. See [`docs/cv-import.md`](docs/cv-import.md) for the supported
-grammar, output decision and Stage 3 contract, and
+byte for byte. When the synchronization pull request is merged, normal site
+compilation renders the new `generated_cv::CV`, displays its tag and commit,
+and Trunk serves the matching PDF from `/cv/Hayden-Farrell-CV.pdf`. No runtime
+GitHub request, LaTeX parsing, or data decoding occurs. See
+[`docs/cv-import.md`](docs/cv-import.md) for the supported grammar and complete
+presentation contract, and
 [`public/cv/README.md`](public/cv/README.md) for operation details.
 
 ## Continuous integration
@@ -208,17 +225,16 @@ an independent full-build run.
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) describes the implemented boundaries and data flow.
-- [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 contract.
+- [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 presentation contract.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
 - [`docs/adr/0002-event-specific-ci.md`](docs/adr/0002-event-specific-ci.md) records the event-specific CI strategy.
 - [`docs/adr/0003-transactional-cv-synchronization.md`](docs/adr/0003-transactional-cv-synchronization.md) records the CV provenance and transaction design.
 - [`docs/adr/0004-generated-rust-cv-data.md`](docs/adr/0004-generated-rust-cv-data.md) records the generated Rust representation decision.
+- [`docs/adr/0005-generated-cv-presentation.md`](docs/adr/0005-generated-cv-presentation.md) records the direct generated-data presentation decision.
 
 ## Future work
 
-The recommended next CV milestone is Stage 3: render `generated_cv::CV` through
-safe Leptos components without raw HTML. Browser-based visual/accessibility
-validation and deployment configuration remain subsequent work. The Projects
+Provider-specific deployment configuration remains future work. The Projects
 page redesign, Markdown articles, RSS, search, demonstrations and analytics are
 deferred until their requirements are concrete.

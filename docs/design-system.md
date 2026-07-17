@@ -105,11 +105,20 @@ not disabled. Featured state remains presentation metadata on the projects page.
 Every major section uses an eyebrow, level-two heading and optional supporting
 copy. Pages preserve one level-one heading and a logical level hierarchy.
 
-### Timeline entries
+### Generated CV
 
-Period, role, organisation, location, summary, highlights and topic tags remain
-grouped in one article. The vertical rule is decorative; semantics do not depend
-on it.
+The CV follows the balanced two-column layout established in commit `67cbe097`:
+a section-heading rail beside a wide reading column. At 52rem it becomes one
+column. Experience and education use the original vertical timeline treatment,
+with decorative markers, compact date labels, and organisation/location grouped
+beneath each heading. Skills reuse the shared badge language. Projects are not
+repeated on the CV page because they have a dedicated route. The web hierarchy
+prioritises readable content flow and does not imitate the PDF's print layout.
+
+Imported inline emphasis maps to native semantic elements. Imported links keep
+the standard focus ring and a subtle token-based underline. Source version and
+short commit provenance appear in a quiet closing section without competing
+with the download action.
 
 ### Focus and accessibility
 

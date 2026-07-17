@@ -2,21 +2,26 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 
 use crate::content::portfolio;
+use crate::cv_presentation::RichTextView;
+use crate::generated_cv::CV as GENERATED_CV;
 use crate::routes::{HOME, NAVIGATION_ROUTES};
 
 #[component]
 pub fn SiteShell(children: Children) -> impl IntoView {
     let (menu_open, set_menu_open) = signal(false);
-    let profile = portfolio().profile;
+    let site_profile = portfolio().profile;
+    let imported_profile = &GENERATED_CV.profile;
+    let header_initials = initials(&imported_profile.full_name);
+    let footer_initials = header_initials.clone();
 
     view! {
         <a class="skip-link" href="#main-content">"Skip to main content"</a>
         <header class="site-header">
             <div class="container site-header__inner">
                 <A href=HOME.path attr:class="brand" attr:aria-label="Go to homepage">
-                    <span class="brand__mark" aria-hidden="true">{profile.initials}</span>
-                    <span class="brand__name">{profile.name}</span>
-                    <span class="brand__role">{profile.role}</span>
+                    <span class="brand__mark" aria-hidden="true">{header_initials}</span>
+                    <span class="brand__name">{imported_profile.full_name.as_ref()}</span>
+                    <span class="brand__role">{site_profile.role}</span>
                 </A>
 
                 <nav class="desktop-nav" aria-label="Primary navigation">
@@ -72,8 +77,8 @@ pub fn SiteShell(children: Children) -> impl IntoView {
             <div class="container site-footer__grid">
                 <div>
                     <A href=HOME.path attr:class="brand brand--footer">
-                        <span class="brand__mark" aria-hidden="true">{profile.initials}</span>
-                        <span class="brand__name">{profile.name}</span>
+                        <span class="brand__mark" aria-hidden="true">{footer_initials}</span>
+                        <span class="brand__name">{imported_profile.full_name.as_ref()}</span>
                     </A>
                     <p>"Software engineering, selected projects and professional experience."</p>
                 </div>
@@ -88,16 +93,32 @@ pub fn SiteShell(children: Children) -> impl IntoView {
                 <div>
                     <p class="footer-heading">"Connect"</p>
                     <ul>
-                        {portfolio().social_links.iter().map(|link| view! {
-                            <li><a href=link.url>{link.label}</a></li>
+                        {imported_profile.social_links.iter().map(|link| view! {
+                            <li>
+                                <a href=link.url.as_ref() target="_blank" rel="noreferrer">
+                                    <RichTextView text=&link.label />
+                                    <span class="sr-only">" (opens in a new tab)"</span>
+                                </a>
+                            </li>
                         }).collect_view()}
+                        <li>
+                            <a href=format!("mailto:{}", imported_profile.contact.email)>"Email"</a>
+                        </li>
                     </ul>
                 </div>
             </div>
             <div class="container site-footer__base">
-                <p>{format!("© 2026 {}.", profile.name)}</p>
+                <p>{format!("© 2026 {}.", imported_profile.full_name)}</p>
                 <p class="site-footer__status"><span aria-hidden="true"></span>"Built for the long term"</p>
             </div>
         </footer>
     }
+}
+
+fn initials(full_name: &str) -> String {
+    full_name
+        .split_whitespace()
+        .filter_map(|part| part.chars().next())
+        .take(2)
+        .collect()
 }

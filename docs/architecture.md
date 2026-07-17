@@ -26,7 +26,8 @@ This is a small layered architecture rather than an enterprise framework:
 
 - **Presentation:** `pages/`, `components/` and `styles/input.css`
 - **Application composition:** `lib.rs`, `app.rs`, `main.rs` and `routes.rs`
-- **Domain data:** the immutable models and portfolio values in `content.rs`
+- **Domain data:** imported CV types/data in `cv.rs` and `generated_cv.rs`, plus
+  non-CV portfolio values in `content.rs`
 - **Infrastructure boundary:** Trunk and the static `public/` directory
 
 The repository also contains a native build-time automation path. It is not
@@ -62,7 +63,8 @@ it, while browser-specific behaviour is isolated from those data structures.
    into the document body.
 3. `App` provides metadata context, starts `Router`, and wraps routes in
    `SiteShell`.
-4. The active page consumes immutable values returned by `content::portfolio()`.
+4. Non-CV pages consume immutable editorial values from `content::portfolio()`;
+   CV presentation and shared identity consume `generated_cv::CV` directly.
 
 The home route is intentionally a fixed single-viewport composition. Its root
 class hides the global footer and document overflow only while that route is
@@ -76,9 +78,10 @@ uses GitHub only during local or scheduled repository maintenance.
 
 ### `src/content.rs`
 
-Owns `Profile`, `SocialLink`, `Project`, `SkillGroup`, `TimelineItem` and
-`Portfolio`. Static slices keep content updates obvious and type-safe. Pure
-selection and integrity behaviour is exercised by `tests/content_tests.rs`.
+Owns homepage-specific editorial copy and the separate Projects-page catalogue.
+It deliberately does not contain identity, contact, experience, education,
+skills, or CV-project data. Pure project selection and integrity behaviour is
+exercised by `tests/content_tests.rs`.
 
 ### `src/lib.rs` and `src/main.rs`
 
@@ -95,11 +98,11 @@ tests share the same metadata; Leptos route declarations remain explicit in
 
 ### `src/components/`
 
-Contains narrowly scoped reusable components:
+Contains narrowly scoped reusable site-wide components:
 
 - primitives: containers, headings, button links and skill badges
 - site shell: header, responsive navigation, skip link and footer
-- project cards and timeline entries
+- project cards
 
 Components accept small typed values rather than broad configuration objects.
 Links remain native anchors or router anchors.
@@ -129,8 +132,23 @@ contain HTML.
 The model uses `Cow`, allowing the native parser to construct owned values and
 the generated module to expose borrowed static data without runtime parsing or
 allocation. `generated_cv.rs` is an automation-owned artifact containing `CV`
-and its upstream tag/SHA. Stage 3 will consume it; current pages continue using
-`content.rs`, so Stage 2 changes no presentation.
+and its upstream tag/SHA. `cv_presentation.rs` renders it directly; the CV route
+adds no copied view model or hand-authored professional data.
+
+### `src/cv_presentation.rs`
+
+Owns Stage 3 presentation components for imported profile/contact data,
+professional links, timeline entries, skill groups, PDF state, safe rich text,
+provenance, and defensive unavailable states. Imported CV projects remain in
+the Stage 2 domain model but are deliberately excluded from this route because
+the site has a dedicated Projects page. The module exhaustively maps the closed
+`Inline` tree to typed Leptos nodes, so imported text is escaped and raw HTML
+cannot enter the view.
+
+Wasm builds enable Leptos CSR. Native builds enable Leptos SSR only to render
+the same components to HTML in external integration tests; the native binary
+does not claim to provide a server. Runtime data remains a borrowed static Rust
+value in both targets.
 
 ### `src/cv_sync/` and `src/bin/sync_cv.rs`
 
@@ -174,7 +192,10 @@ than browser markup snapshots:
 
 - valid and unique project identifiers
 - required content and HTTPS project links
-- complete CV sections and absence of placeholder markers
+- generated profile and every major CV section in production Leptos markup
+- conditional sections, PDF/data fallback states and download behaviour
+- safe inline formatting, escaping, link policy and accessible link context
+- date/location presentation and responsive/focus styling contracts
 - featured-project selection
 - unique internal routes and page titles
 - semantic tag selection, manifest and artifact validation
@@ -188,14 +209,12 @@ than browser markup snapshots:
 
 CI additionally compiles every target with warnings denied and builds the actual
 Wasm application. The scheduled CV workflow repeats the native quality suite
-before opening an artifact update pull request. Visual and end-to-end browser
-automation can be added when content stabilises and regression value exceeds
-maintenance cost.
+before opening an artifact update pull request.
 
 ## Extension points
 
-- Stage 3 can replace or map the CV portions of `content.rs` from
-  `generated_cv::CV` without changing the import transaction.
+- Extend CV layout or component composition in `cv_presentation.rs` without
+  changing the parser; change parsing only for an upstream grammar/domain change.
 - Add project detail routes without changing the project-card content model.
 - Add an Axum server only when a real server concern appears (for example a
   validated contact endpoint, authentication or dynamic content).

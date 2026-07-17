@@ -22,11 +22,14 @@ cv-sync = []
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
-leptos = { version = "0.8.15", features = ["csr"] }
 leptos_meta = "0.8.5"
 leptos_router = "0.8.11"
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+leptos = { version = "0.8.15", features = ["csr"] }
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+leptos = { version = "0.8.15", features = ["ssr"] }
 lopdf = { version = "0.44.0", default-features = false }
 semver = "1.0.28"
 serde = { version = "1.0.228", features = ["derive"] }

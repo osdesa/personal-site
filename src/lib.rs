@@ -8,6 +8,7 @@ pub mod app;
 mod components;
 pub mod content;
 pub mod cv;
+pub mod cv_presentation;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod cv_sync;
 pub mod generated_cv;

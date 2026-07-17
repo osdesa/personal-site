@@ -7,7 +7,7 @@ domain data. It is deliberately a document-specific importer, not a general
 LaTeX implementation. A format change must be reviewed and added to this
 contract before it can be published.
 
-The pipeline does not render CV data. Stage 3 will consume the generated model.
+Stage 3 renders the generated model directly through typed Leptos components.
 
 ## Supported document grammar
 
@@ -139,14 +139,45 @@ data, and metadata together.
 
 ## Stage 3 integration
 
-Stage 3 should read `personal_site::generated_cv::CV` through the public types
-in `personal_site::cv`. Presentation components should match `Inline` variants
-to safe Leptos nodes and validate link behaviour; they must not convert rich
-text to an HTML string or use raw HTML injection.
+`src/pages/cv.rs` passes `generated_cv::CV`, `SOURCE_TAG` and
+`SOURCE_COMMIT_SHA` directly to `cv_presentation::CvDocument`. No intermediate
+view model duplicates imported values. The same generated profile supplies the
+shared site identity and professional links; `content.rs` now contains only
+non-CV editorial copy and the separate portfolio catalogue.
 
-The current hand-authored `content.rs` remains the live presentation source
-until Stage 3 explicitly maps or replaces those view models. Stage 2 does not
-change website rendering.
+`cv_presentation` provides focused components for the profile/download hero,
+professional links, experience and education timelines, skill groups, source
+version and unavailable states. It formats typed dates and locations at the
+presentation boundary. Empty optional displayed collections omit their section
+or list.
+
+Stage 2 continues to parse and preserve the upstream Projects section so the
+generated model remains a complete validated representation of the tagged CV.
+Stage 3 intentionally does not render those projects on `/cv`; the website's
+dedicated `/projects` route owns project presentation and avoids repeating the
+same category on two pages.
+
+`RichTextView` exhaustively matches `Inline` variants to Leptos text, `strong`,
+`em`, `u` and anchor nodes. Leptos escapes text values. HTTPS links open in a
+new tab with `noreferrer` and announced new-tab context; `mailto:` links remain
+same-context. The component never converts rich text to an HTML string and
+never uses raw HTML injection.
+
+The production route supplies `/cv/Hayden-Farrell-CV.pdf`. Trunk copies the
+checked-in `public/cv` directory unchanged, so that URL serves the PDF from the
+same synchronized transaction as the generated Rust data. The anchor includes
+a stable download filename. The presentation API also supports an unavailable
+PDF state and a generated-data fallback for defensive composition and tests.
+
+When a newer synchronization pull request is merged, the next build compiles
+the updated `generated_cv.rs` and publishes the matching PDF automatically.
+There are no GitHub requests, LaTeX parsing, JSON decoding, or PDF inspection in
+the website runtime.
+
+To extend presentation, edit `cv_presentation.rs` and the shared token-based
+rules in `styles/input.css`. Consume existing public types from `cv.rs`; do not
+edit `generated_cv.rs` or copy its content. Change the parser and generator only
+when the supported upstream grammar or semantic domain changes.
 
 ## Assumptions and limitations
 
