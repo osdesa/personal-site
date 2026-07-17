@@ -246,6 +246,7 @@ an independent full-build run.
 - [`docs/architecture.md`](docs/architecture.md) describes the implemented boundaries and data flow.
 - [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 presentation contract.
 - [`docs/project-import.md`](docs/project-import.md) documents authenticated project selection, metadata and operation.
+- [`docs/deployment.md`](docs/deployment.md) records the future static-hosting requirements and provider-selection checklist.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
 - [`docs/adr/0002-event-specific-ci.md`](docs/adr/0002-event-specific-ci.md) records the event-specific CI strategy.
@@ -256,6 +257,7 @@ an independent full-build run.
 
 ## Future work
 
-Provider-specific deployment configuration remains future work. Markdown
-articles, RSS, search, richer demonstrations and analytics are
-deferred until their requirements are concrete.
+Deployment remains provider-neutral until a host is selected; see
+[`docs/deployment.md`](docs/deployment.md). Markdown articles, RSS, search,
+richer demonstrations and analytics are deferred until their requirements are
+concrete.
