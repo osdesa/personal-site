@@ -66,8 +66,9 @@ remote result reaches the checked-in artifact.
 ## Runtime flow
 
 1. Trunk loads `index.html`, the generated stylesheet, controlled local image
-   assets and the compiled Wasm. The initial document has only truthful
-   site-wide crawler metadata because the application is CSR.
+   assets and the compiled Wasm. The initial document has truthful generic
+   site-wide crawler metadata using the typed production origin from
+   `routes.rs`; route-specific browser metadata updates after CSR mounting.
 2. The thin `main.rs` binary imports `App` from the library crate and mounts it
    into the document body.
 3. `App` provides metadata context, starts `Router`, and wraps routes in
@@ -77,7 +78,9 @@ remote result reaches the checked-in artifact.
    `generated_projects::PROJECTS`.
 
 There are no runtime data requests, environment variables, credentials or
-server processes in the deployed website runtime. The separate native `sync-cv` and
+server processes in the deployed website runtime. Cloudflare Pages hosts the
+`dist/` artifact built from `main`; it receives no synchronization credentials.
+The separate native `sync-cv` and
 `sync-projects` tools use GitHub only during local or scheduled maintenance.
 
 ## Module responsibilities
@@ -110,9 +113,11 @@ modules. `main.rs` only installs the panic hook and mounts `App`.
 Defines public navigation paths, labels, titles and descriptions. Navigation,
 browser metadata and tests share the same route metadata; Leptos route
 declarations remain explicit in `app.rs` so each view is visible at the
-application boundary. The static `index.html` is intentionally only a
-site-wide crawler/share fallback; route-specific metadata appears after Wasm
-mounting and does not promise route-specific social previews.
+application boundary. It also owns the typed `PRODUCTION_ORIGIN`, from which
+route canonical URLs and controlled sharing artwork URLs are derived. The
+static `index.html` is intentionally only a site-wide crawler/share fallback;
+route-specific metadata appears after Wasm mounting and does not promise
+route-specific social previews to non-rendering crawlers.
 
 ### `src/components/`
 
@@ -200,10 +205,12 @@ Stage 3 contract are documented in `docs/cv-import.md`.
 ## Routing and static hosting
 
 Leptos Router handles `/`, `/projects` and `/cv`, with a fallback view for
-unknown paths. About and Contact are intentionally not separate routes. A
-production static host must rewrite unknown
-non-file paths to `index.html` so direct navigation can reach the client router.
-That hosting rule belongs in future provider-specific deployment configuration.
+unknown paths. About and Contact are intentionally not separate routes.
+Cloudflare Pages builds the repository root from `main` and serves `dist/` at
+`https://haydenfarrell.dev`. Its normal SPA fallback must reach `index.html`
+for non-file paths while serving assets unchanged. Do not add a top-level
+`404.html` or broad catch-all redirect unless production direct-route testing
+demonstrates that Pages requires one.
 
 ## Testing strategy
 
@@ -235,6 +242,11 @@ projects, CV and not-found routes with axe, and checks the mobile menu's
 keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
 workflow repeats the native quality suite before opening an artifact update pull
 request.
+
+`scripts/validate-static-output.mjs` checks the release directory after Trunk
+builds it. It verifies crawler files, controlled static assets, the CV PDF,
+CSS/JavaScript/Wasm output, absolute metadata, the canonical route set, and
+the absence of localhost, Pages-preview, and synchronization-token-name leaks.
 
 The repository-owned Lighthouse runner separately serves `dist/` as a local SPA
 after the release build, audits the three public routes three times, and

@@ -7,6 +7,7 @@
     "css:watch": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --watch",
     "test:browser": "npm run css:build && trunk build --release && npm run test:browser:dist",
     "test:browser:dist": "playwright test",
+    "test:static": "node ./scripts/validate-static-output.mjs",
     "test:performance": "node ./scripts/performance-audit.mjs"
   },
   "devDependencies": {

@@ -2,6 +2,10 @@
 
 #[cfg(target_arch = "wasm32")]
 use leptos::prelude::Effect;
+use leptos::prelude::*;
+use leptos_meta::{Link, Meta, Title};
+
+use crate::routes::{RouteInfo, canonical_url_for_path};
 
 /// Removes the static description after the route-level `Meta` component has
 /// mounted, leaving one browser-visible description for the current route.
@@ -18,4 +22,22 @@ pub fn remove_static_description_on_mount() {
             static_description.remove();
         }
     });
+}
+
+/// Adds route-specific browser metadata after the CSR application mounts.
+///
+/// The initial document deliberately remains a generic site-wide fallback for
+/// non-rendering crawlers. This component improves the browser and
+/// JavaScript-capable crawler view without claiming that the static document is
+/// route-specific.
+#[component]
+pub fn RouteMetadata(route: RouteInfo) -> impl IntoView {
+    let canonical_url = canonical_url_for_path(route.path);
+
+    view! {
+        <Title text=route.title />
+        <Meta name="description" content=route.description />
+        <Link rel="canonical" href=canonical_url.clone() />
+        <Meta property="og:url" content=canonical_url />
+    }
 }

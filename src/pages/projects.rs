@@ -1,7 +1,8 @@
 use leptos::prelude::*;
-use leptos_meta::{Meta, Title};
 
-use crate::components::{Container, ProjectCard, remove_static_description_on_mount};
+use crate::components::{
+    Container, ProjectCard, RouteMetadata, remove_static_description_on_mount,
+};
 use crate::generated_projects::PROJECTS as projects;
 use crate::routes::{PROJECTS, metadata_for_path};
 
@@ -11,8 +12,7 @@ pub fn ProjectsPage() -> impl IntoView {
     remove_static_description_on_mount();
 
     view! {
-        <Title text=metadata.title />
-        <Meta name="description" content=metadata.description />
+        <RouteMetadata route=metadata />
 
         <section class="section" aria-labelledby="selected-projects-title">
             <Container>

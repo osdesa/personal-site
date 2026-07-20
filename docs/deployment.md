@@ -1,64 +1,72 @@
-# Deployment notes
+# Production deployment
 
-## Current status
+## Confirmed Cloudflare Pages configuration
 
-The website is intentionally not deployed yet. It builds as a static WebAssembly
-application with Trunk, and the deployable output is the `dist/` directory.
-No hosting provider, custom domain, or production credentials have been
-selected or configured.
+Cloudflare Pages hosts the production static site from the `main` branch of
+`osdesa/personal-site`. It builds at the repository root and publishes `dist/`.
+The canonical HTTPS origin is `https://haydenfarrell.dev`; `www.haydenfarrell.dev`
+is a secondary hostname and must permanently redirect to the apex domain while
+preserving paths and query strings.
 
-## Deployment requirements
+Pages deploys each merge to `main`. This delivery signal does not replace the
+required GitHub Actions `CI` checks: Rust quality, production bundle,
+accessibility and main-branch Lighthouse checks remain the correctness gate.
 
-The selected provider must:
+The Pages dashboard is intentionally free of `CV_SYNC_TOKEN`,
+`PORTFOLIO_SYNC_TOKEN`, and `PORTFOLIO_GITHUB_TOKEN`. They are GitHub Actions
+secrets only, are not Cloudflare environment variables, and never enter a
+Trunk/client build. The deployed application has no runtime GitHub calls.
 
-- build the site with the pinned Rust toolchain, Node.js dependencies and
-  `trunk build --release`;
-- publish the resulting `dist/` directory;
-- rewrite non-file requests to `index.html`, so direct visits to `/projects`
-  and `/cv` reach the client-side router;
-- serve the site over HTTPS and support a future custom domain;
-- keep deployment credentials separate from `PORTFOLIO_GITHUB_TOKEN`.
+## Build command
 
-The GitHub project and CV synchronizers are build-time maintenance tools. They
-must not run in the browser or as part of a public deployment runtime. Their
-scheduled GitHub Actions workflows update generated source data before the
-normal deployment build runs.
+The validated production command is:
 
-## Provider decision
+```text
+bash scripts/cloudflare-build.sh
+```
 
-The project should evaluate Cloudflare Pages, Netlify and GitHub Pages when
-hosting is ready. All three support deployment from the public repository.
-Cloudflare Pages and Netlify are the most straightforward choices where SPA
-rewrite support is required. GitHub Pages remains an option after confirming
-that its routing configuration meets the application’s needs.
+The script preserves the confirmed build behaviour: it installs a minimal Rust
+toolchain non-interactively, adds `wasm32-unknown-unknown`, installs Trunk
+`0.21.14` with `--locked`, builds production CSS, and runs
+`trunk build --release`. Cloudflare must also use Node.js 24. Updating the
+Pages dashboard to this command is a manual setting; this repository cannot
+change dashboard configuration automatically.
 
-Choose a provider before adding deployment credentials, domain records or a
-deployment workflow. This keeps the repository provider-neutral and avoids
-unused secrets.
+## Production verification
 
-The same decision must provide the canonical public origin. Only then should
-deployment add absolute canonical and Open Graph URLs, and create `robots.txt`
-and `sitemap.xml` for the three canonical public routes. The current static
-metadata is deliberately site-wide because non-rendering crawlers do not
-execute the client application; the selected generic sharing metadata does not
-require a rendering strategy.
+After a deployment, directly open and refresh:
 
-## Implementation checklist
+- `https://haydenfarrell.dev/`
+- `https://haydenfarrell.dev/projects`
+- `https://haydenfarrell.dev/cv`
+- `https://haydenfarrell.dev/cv/Hayden-Farrell-CV.pdf`
+- `https://haydenfarrell.dev/robots.txt`
+- `https://haydenfarrell.dev/sitemap.xml`
+- `https://haydenfarrell.dev/favicon.svg`
+- `https://haydenfarrell.dev/images/project-default.svg`
 
-1. Select the provider and create the hosting project connected to `main`.
-2. Configure the production build command as `npm ci && npm run css:build && trunk build --release`.
-3. Configure `dist/` as the published directory and add the SPA rewrite rule.
-4. Add only the provider-specific secrets required for deployment.
-5. Enable preview deployments for pull requests if supported.
-6. Configure the custom domain, HTTPS and redirects when the domain is known.
-7. Verify direct navigation to `/`, `/projects`, `/cv` and an unknown route.
-8. Add a deployment status check or GitHub Actions workflow only after the
-   provider integration has been confirmed.
+Also test an unknown route. It should reach the Leptos Not Found view rather
+than a host 404. Do not add a top-level `404.html` or broad catch-all redirect
+unless a direct-route production test proves Pages needs it; both can interfere
+with its normal SPA and asset handling.
 
-## Operational checks
+Inspect the initial HTML with JavaScript disabled: it must contain generic
+site-wide canonical/Open Graph/Twitter metadata using the canonical origin.
+Because the application is a static CSR SPA, that initial document cannot carry
+a route-specific canonical URL for every direct client route. After Wasm
+mounts, route metadata updates the browser view; non-rendering crawlers retain
+the honest generic fallback. Server rendering is intentionally out of scope.
 
-After deployment, confirm that the daily portfolio synchronization workflow
-can merge generated updates without disrupting deployment, and that a `main`
-build publishes the refreshed project catalogue. Monitor build failures and
-configure notifications through the chosen provider rather than storing a
-deployment token in repository files.
+## Operations and rollback
+
+For a failed deployment, inspect the relevant Cloudflare Pages deployment log.
+To roll back, open **Workers & Pages** > this Pages project > **Deployments**,
+select the last known-good production deployment, and use Cloudflare's rollback
+or promote action. If the fault is source-related, also revert it through a
+normal pull request so `main`, CI, and production converge.
+
+To change the canonical domain in future, first configure and verify the new
+HTTPS hostname and redirect policy in Pages/DNS. Then make one reviewed source
+change to `PRODUCTION_ORIGIN` in `src/routes.rs`, update the static fallback
+metadata in `index.html`, `public/robots.txt`, and `public/sitemap.xml`, update
+these documents, run the static-output validation, and deploy from `main`.

@@ -23,8 +23,9 @@ site includes:
   support, strict optional overrides and deterministic generated Rust data
 - focused Rust tests and a production CI build
 
-Authentication, a database, CMS, blog, analytics, search, contact-form backend
-and deployment-provider configuration are intentionally outside this milestone.
+Authentication, a database, CMS, blog, analytics, search and a contact-form
+backend are intentionally outside this milestone. Production static hosting is
+provided by Cloudflare Pages.
 
 ## Technology stack
 
@@ -80,6 +81,7 @@ Generate minified CSS and the optimized WebAssembly bundle:
 ```text
 npm run css:build
 trunk build --release
+npm run test:static
 npm run test:browser
 npm run test:performance
 ```
@@ -106,6 +108,7 @@ cargo build --release --features cv-sync --bin sync-cv
 cargo build --release --features project-sync --bin sync-projects
 npm run css:build
 trunk build --release
+npm run test:static
 npm run test:browser
 npm run test:performance
 ```
@@ -173,11 +176,12 @@ generator changes are required only when the upstream document grammar or
 domain meaning changes, not for layout, copy framing, or styling changes.
 
 Update route-specific browser titles and descriptions in
-[`src/routes.rs`](src/routes.rs). `index.html` contains the deliberately
-site-wide no-Wasm crawler fallback; it must not claim route-specific sharing
-previews before a canonical production origin and rendering strategy are
-selected. See [`docs/web-quality.md`](docs/web-quality.md) for the metadata and
-performance operations contract.
+[`src/routes.rs`](src/routes.rs). That module also owns the typed canonical
+production origin, `https://haydenfarrell.dev`. `index.html` contains the
+deliberately generic no-Wasm crawler fallback; it cannot provide correct
+route-specific social previews for every static CSR route. See
+[`docs/web-quality.md`](docs/web-quality.md) for the metadata and performance
+operations contract.
 
 ### Synchronizing portfolio projects
 
@@ -244,6 +248,27 @@ validated bundle differs. It never pushes source artifacts directly to `main`.
 dispatch. It requires `PORTFOLIO_GITHUB_TOKEN`, preserves the current generated
 catalogue on any failure, validates the repository, and opens or updates the
 `automation/project-sync` pull request only when output differs.
+
+## Production hosting
+
+Cloudflare Pages automatically deploys `main` from the repository root. Its
+published directory is `dist/`; the canonical production URL is
+`https://haydenfarrell.dev`. `www.haydenfarrell.dev` is secondary and must
+redirect to the apex origin. GitHub Actions CI remains the required correctness
+gate and is not replaced by a successful Pages deployment.
+
+Configure Pages manually with Node.js 24 and this build command:
+
+```text
+bash scripts/cloudflare-build.sh
+```
+
+The script installs the confirmed Rust/Wasm/Trunk inputs and builds minified
+CSS plus the release bundle. Never place `CV_SYNC_TOKEN`, `PORTFOLIO_SYNC_TOKEN`
+or `PORTFOLIO_GITHUB_TOKEN` in Cloudflare: they are GitHub Actions-only secrets
+used by synchronization, never client build inputs. See
+[`docs/deployment.md`](docs/deployment.md) for production verification,
+rollback, domain changes and the static-CSR metadata limitation.
 
 ### CI efficiency
 

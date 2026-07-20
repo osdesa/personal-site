@@ -1,7 +1,6 @@
 use leptos::prelude::*;
-use leptos_meta::{Meta, Title};
 
-use crate::components::{ButtonLink, remove_static_description_on_mount};
+use crate::components::{ButtonLink, RouteMetadata, remove_static_description_on_mount};
 use crate::content::portfolio;
 use crate::cv::SocialPlatform;
 use crate::generated_cv::CV as GENERATED_CV;
@@ -16,8 +15,7 @@ pub fn HomePage() -> impl IntoView {
     remove_static_description_on_mount();
 
     view! {
-        <Title text=metadata.title />
-        <Meta name="description" content=metadata.description />
+        <RouteMetadata route=metadata />
 
         <section class="home-page">
             <div class="container home-page__inner">

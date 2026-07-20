@@ -1,7 +1,10 @@
 use std::fs;
 
 use personal_site::components::structured_data_json;
-use personal_site::routes::{HOME, SITE_DESCRIPTION, SITE_NAME};
+use personal_site::routes::{
+    HOME, NAVIGATION_ROUTES, PRODUCTION_ORIGIN, SITE_DESCRIPTION, SITE_NAME,
+    canonical_url_for_path, social_image_url,
+};
 
 #[test]
 fn initial_document_has_truthful_site_wide_share_metadata() {
@@ -25,19 +28,56 @@ fn initial_document_has_truthful_site_wide_share_metadata() {
 }
 
 #[test]
-fn initial_document_does_not_claim_origin_dependent_metadata() {
+fn static_document_has_canonical_production_metadata() {
     let document = include_str!("../index.html");
 
-    for absent in [
-        "rel=\"canonical\"",
-        "property=\"og:url\"",
-        "property=\"og:image\"",
+    for expected in [
+        format!(
+            "rel=\"canonical\" href=\"{}\"",
+            canonical_url_for_path(HOME.path)
+        ),
+        format!(
+            "property=\"og:url\" content=\"{}\"",
+            canonical_url_for_path(HOME.path)
+        ),
+        format!("property=\"og:image\" content=\"{}\"", social_image_url()),
+        format!("name=\"twitter:image\" content=\"{}\"", social_image_url()),
     ] {
         assert!(
-            !document.contains(absent),
-            "origin-dependent metadata must wait for a canonical public origin: {absent}"
+            document.contains(&expected),
+            "missing static production metadata: {expected}"
         );
     }
+}
+
+#[test]
+fn canonical_urls_are_derived_from_the_one_typed_origin() {
+    assert_eq!(PRODUCTION_ORIGIN.as_str(), "https://haydenfarrell.dev");
+    for route in NAVIGATION_ROUTES {
+        assert_eq!(
+            canonical_url_for_path(route.path),
+            format!("https://haydenfarrell.dev{}", route.path)
+        );
+    }
+    assert_eq!(
+        social_image_url(),
+        "https://haydenfarrell.dev/images/project-default.svg"
+    );
+}
+
+#[test]
+fn crawl_control_files_contain_only_the_public_production_routes() {
+    let robots = include_str!("../public/robots.txt");
+    let sitemap = include_str!("../public/sitemap.xml");
+
+    assert!(robots.contains("User-agent: *"));
+    assert!(robots.contains("Allow: /"));
+    assert!(robots.contains("Sitemap: https://haydenfarrell.dev/sitemap.xml"));
+    for path in ["/", "/projects", "/cv"] {
+        assert!(sitemap.contains(&canonical_url_for_path(path)));
+    }
+    assert_eq!(sitemap.matches("<loc>").count(), 3);
+    assert!(!sitemap.contains("not-found"));
 }
 
 #[test]
@@ -56,5 +96,5 @@ fn structured_data_uses_public_identity_without_contact_details() {
     assert!(json.contains("\"@type\":\"WebSite\""));
     assert!(json.contains("\"sameAs\""));
     assert!(!json.contains("haydenfarrell@outlook.com"));
-    assert!(!json.contains("\"url\""));
+    assert!(json.contains("\"url\":\"https://haydenfarrell.dev\""));
 }

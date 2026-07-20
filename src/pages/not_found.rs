@@ -1,7 +1,6 @@
 use leptos::prelude::*;
-use leptos_meta::{Meta, Title};
 
-use crate::components::{ButtonLink, Container, remove_static_description_on_mount};
+use crate::components::{ButtonLink, Container, RouteMetadata, remove_static_description_on_mount};
 use crate::routes::{HOME, metadata_for_path};
 
 #[component]
@@ -10,8 +9,7 @@ pub fn NotFoundPage() -> impl IntoView {
     remove_static_description_on_mount();
 
     view! {
-        <Title text=metadata.title />
-        <Meta name="description" content=metadata.description />
+        <RouteMetadata route=metadata />
         <section class="not-found">
             <Container>
                 <div class="not-found__code" aria-hidden="true">"404"</div>
