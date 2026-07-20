@@ -13,25 +13,32 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <!--
       This is deliberately site-wide metadata. The app is client-side rendered,
-      so crawlers that do not execute WebAssembly see this document for every
-      route. A canonical origin has not been selected; canonical, og:url and
-      og:image values must remain absent until absolute URLs can be generated.
+      so crawlers that do not execute WebAssembly see this generic document for
+      every route. The typed source of truth is `src/routes.rs`; this static
+      fallback is kept in sync by metadata and output validation tests.
     -->
+    <link rel="canonical" href="https://haydenfarrell.dev/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Hayden Farrell" />
     <meta property="og:title" content="Hayden Farrell | Software Engineer" />
+    <meta property="og:url" content="https://haydenfarrell.dev/" />
+    <meta property="og:image" content="https://haydenfarrell.dev/images/project-default.svg" />
     <meta
       property="og:description"
       content="Hayden Farrell - software engineer, selected projects and professional CV."
     />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Hayden Farrell | Software Engineer" />
+    <meta name="twitter:image" content="https://haydenfarrell.dev/images/project-default.svg" />
     <meta
       name="twitter:description"
       content="Hayden Farrell - software engineer, selected projects and professional CV."
     />
+    <link data-trunk rel="rust" data-bin="personal-site" />
     <link data-trunk rel="css" href="styles/generated.css" />
     <link data-trunk rel="copy-file" href="public/favicon.svg" />
+    <link data-trunk rel="copy-file" href="public/robots.txt" />
+    <link data-trunk rel="copy-file" href="public/sitemap.xml" />
     <link data-trunk rel="copy-dir" href="public/images" data-target-path="images" />
     <link
       data-trunk

@@ -86,6 +86,9 @@ jobs:
       - name: Build production WebAssembly bundle
         run: trunk build --release
 
+      - name: Validate production static output
+        run: npm run test:static
+
       - name: Upload production bundle
         uses: actions/upload-artifact@v4
         with:

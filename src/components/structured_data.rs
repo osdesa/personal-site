@@ -5,13 +5,12 @@ use leptos_meta::Script;
 
 use crate::content::portfolio;
 use crate::generated_cv::CV as GENERATED_CV;
-use crate::routes::{SITE_DESCRIPTION, SITE_NAME};
+use crate::routes::{PRODUCTION_ORIGIN, SITE_DESCRIPTION, SITE_NAME};
 
-/// Adds origin-independent JSON-LD after the client application has mounted.
+/// Adds public JSON-LD after the client application has mounted.
 ///
-/// The data intentionally omits a `url` field until the owner selects a
-/// canonical public origin. It contains only public identity fields already
-/// published by the generated CV; email and other contact details stay out.
+/// It contains only public identity fields already published by the generated
+/// CV; email and other contact details stay out.
 #[component]
 pub fn StructuredData() -> impl IntoView {
     let json = structured_data_json();
@@ -21,7 +20,7 @@ pub fn StructuredData() -> impl IntoView {
     }
 }
 
-/// Builds the site's origin-independent JSON-LD graph.
+/// Builds the site's public JSON-LD graph.
 pub fn structured_data_json() -> String {
     let same_as = GENERATED_CV
         .profile
@@ -35,7 +34,7 @@ pub fn structured_data_json() -> String {
         concat!(
             "{{\"@context\":\"https://schema.org\",\"@graph\":[",
             "{{\"@type\":\"Person\",\"name\":\"{}\",\"jobTitle\":\"{}\",\"sameAs\":[{}]}},",
-            "{{\"@type\":\"WebSite\",\"name\":\"{}\",\"description\":\"{}\"}}",
+            "{{\"@type\":\"WebSite\",\"name\":\"{}\",\"description\":\"{}\",\"url\":\"{}\"}}",
             "]}}"
         ),
         json_string(GENERATED_CV.profile.full_name.as_ref()),
@@ -43,6 +42,7 @@ pub fn structured_data_json() -> String {
         same_as,
         json_string(SITE_NAME),
         json_string(SITE_DESCRIPTION),
+        json_string(PRODUCTION_ORIGIN.as_str()),
     )
 }
 

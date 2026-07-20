@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: synchronize-cv
@@ -17,11 +16,23 @@ jobs:
   synchronize:
     name: Synchronize highest semantic CV release
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
-      - name: Check out repository
+      - name: Check out trusted main
         uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Require the CV pull-request token
+        env:
+          SYNC_TOKEN: ${{ secrets.CV_SYNC_TOKEN }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "CV_SYNC_TOKEN is required to push automation/cv-sync and manage its pull request." >&2
+            exit 1
+          fi
 
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
@@ -31,9 +42,7 @@ jobs:
       - name: Cache Rust build data
         uses: Swatinem/rust-cache@v2
 
-      - name: Synchronize validated CV bundle
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Synchronize validated public CV bundle
         run: cargo run --locked --release --features cv-sync --bin sync-cv -- --root "$GITHUB_WORKSPACE"
 
       - name: Verify synchronized repository
@@ -41,24 +50,66 @@ jobs:
           cargo fmt --check
           cargo clippy --locked --all-targets --all-features -- -D warnings
           cargo test --locked --all-targets --all-features
-          cargo build --locked --release --features cv-sync --bin sync-cv
+          cargo build --locked --release --all-features --bins
+
+      - name: Identify the trusted synchronization actor
+        id: actor
+        env:
+          GH_TOKEN: ${{ secrets.CV_SYNC_TOKEN }}
+        run: echo "login=$(gh api user --jq .login)" >> "$GITHUB_OUTPUT"
 
       - name: Create or update CV synchronization pull request
+        id: create-pr
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ secrets.CV_SYNC_TOKEN || github.token }}
+          token: ${{ secrets.CV_SYNC_TOKEN }}
           add-paths: |
             public/cv/Hayden-Farrell-CV.tex
             public/cv/Hayden-Farrell-CV.pdf
             public/cv/source-manifest.json
             src/generated_cv.rs
           branch: automation/cv-sync
+          base: main
           delete-branch: true
           commit-message: "chore(cv): synchronize source release"
           title: "chore(cv): synchronize source release"
           body: |
+            <!-- personal-site-sync:cv -->
             Synchronizes the highest semantic-version release from `osdesa/cv`.
 
             The Rust synchronizer resolved the tag to an immutable commit, downloaded
             and validated both artifacts, strictly parsed the LaTeX, generated typed
             Rust data, and updated the provenance manifest transactionally.
+
+      - name: Verify auto-merge eligibility and enable native auto-merge
+        if: steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.CV_SYNC_TOKEN }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+          TRUSTED_AUTHOR: ${{ steps.actor.outputs.login }}
+        run: |
+          pr="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
+          head_branch="$(jq -r '.head.ref' <<<"$pr")"
+          base_branch="$(jq -r '.base.ref' <<<"$pr")"
+          head_repository="$(jq -r '.head.repo.full_name // empty' <<<"$pr")"
+          author="$(jq -r '.user.login' <<<"$pr")"
+          body="$(jq -r '.body // empty' <<<"$pr")"
+          marker_present=false
+          if grep -Fq '<!-- personal-site-sync:cv -->' <<<"$body"; then marker_present=true; fi
+          arguments=(
+            --kind cv
+            --head-branch "$head_branch"
+            --base-branch "$base_branch"
+            --head-repository "$head_repository"
+            --repository "$GITHUB_REPOSITORY"
+            --author "$author"
+            --trusted-author "$TRUSTED_AUTHOR"
+          )
+          if [ "$marker_present" = true ]; then arguments+=(--marker-present); fi
+          cargo run --locked --release --bin verify-auto-merge -- "${arguments[@]}"
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash --delete-branch
+          {
+            echo "### CV synchronization"
+            echo "Created or updated #$PR_NUMBER on automation/cv-sync."
+            echo "GitHub native auto-merge is enabled and will wait for required checks and branch protection."
+          } >> "$GITHUB_STEP_SUMMARY"

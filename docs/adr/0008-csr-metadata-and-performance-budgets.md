@@ -46,3 +46,7 @@ release bundle and needs no production JavaScript, analytics service or server.
 - CI gains a Chromium-based quality check and its local reports are ignored.
 - Every new essential asset must fit the 550,000-byte initial-transfer budget
   or update the baseline and rationale deliberately.
+- Local Lighthouse permits an SEO score of 0.90 because its `127.0.0.1` static
+  server cannot regard a real production-origin canonical link as same-origin.
+  Static-output validation enforces the exact link; the deployed canonical
+  origin must still receive a 1.00 SEO audit before release.

@@ -1,6 +1,6 @@
 # Search, sharing and performance operations
 
-## Current metadata boundary
+## Production metadata boundary
 
 The deployable application is a static, client-side-rendered Trunk bundle. Its
 initial `index.html` is therefore the only dependable metadata source for
@@ -13,22 +13,28 @@ route page modules. They improve the browser experience and JavaScript-capable
 crawlers, but do **not** provide route-specific social previews for
 non-rendering crawlers.
 
-No canonical URL, `og:url`, `og:image`, social-image URL, `robots.txt`, or
-`sitemap.xml` is published yet. All need a selected public origin and stable
-deployment routing. No social-card image is planned; the chosen sharing
-strategy is the truthful generic text metadata in the initial document.
+`src/routes.rs` owns the typed canonical production origin
+`https://haydenfarrell.dev`. The generic initial document contains its home
+canonical URL, Open Graph URL, title, description and controlled local sharing
+image, plus the existing Twitter card fields. `public/robots.txt` permits normal
+crawling and identifies the production sitemap. `public/sitemap.xml` contains
+only `/`, `/projects`, and `/cv`.
 
-The mounted application also emits origin-independent `Person` and `WebSite`
-JSON-LD from public generated CV identity and links. It excludes email and
-does not claim a `url`. Like route metadata, it is not a guarantee for a
-crawler that reads only initial HTML.
+The mounted application also emits `Person` and `WebSite` JSON-LD from public
+generated CV identity and links. It excludes email and identifies the canonical
+site URL. Like route metadata, it is not a guarantee for a crawler that reads
+only initial HTML.
 
-When a production domain is selected, add one canonical-origin configuration
-value and use it to generate absolute canonical and Open Graph URLs. At the
-same time, publish `robots.txt` and `sitemap.xml` containing only
-`/`, `/projects` and `/cv`. Generic static sharing metadata is the selected
-long-term approach; do not add prerendering or server rendering solely for
-route-specific previews.
+The mounted application updates canonical and Open Graph URLs for browser and
+JavaScript-capable crawlers. The static initial document stays generic for all
+routes: a pure CSR bundle cannot make canonical metadata correct for every
+direct route seen by non-rendering crawlers. Generic static sharing metadata is
+the selected long-term approach; do not add prerendering or server rendering
+solely for route-specific previews.
+
+Validate the built directory with `npm run test:static` after a release build.
+It rejects missing required static files, non-production origins, Pages preview
+domains, localhost references, and the GitHub synchronization secret names.
 
 ## Performance measurement and budgets
 
@@ -61,7 +67,8 @@ limits.
 | Measure | CI threshold | Rationale |
 | --- | --- | --- |
 | Performance score | at least 0.90 | Allows normal local/CI variance while catching a material regression. |
-| Accessibility, best-practices and SEO scores | 1.00 | Deterministic quality failures should be fixed, not averaged away. |
+| Accessibility and best-practices scores | 1.00 | Deterministic quality failures should be fixed, not averaged away. |
+| Local SEO score | at least 0.90 | Lighthouse treats client-route canonical links to the real HTTPS origin as cross-origin when it serves `dist/` from `127.0.0.1`; static-output validation checks those links exactly. Audit the deployed canonical origin at 1.00 before release. |
 | Transferred bytes | at most 550,000 bytes | Leaves roughly 15% headroom over the baseline but rejects an additional large payload. |
 | Cumulative layout shift | at most 0.05 | Leaves room for rendering variance while protecting stable card layout. |
 

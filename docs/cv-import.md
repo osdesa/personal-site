@@ -9,6 +9,12 @@ contract before it can be published.
 
 Stage 3 renders the generated model directly through typed Leptos components.
 
+The public upstream source is synchronized daily at 05:17 UTC by
+`sync-cv.yml`, or on manual dispatch. `CV_SYNC_TOKEN` is used only to publish
+the fixed `automation/cv-sync` PR after public retrieval has succeeded. The
+trusted PR and CI-gated native auto-merge policy is documented in
+[`automation.md`](automation.md).
+
 ## Supported document grammar
 
 Comments beginning with an unescaped `%` and insignificant whitespace are

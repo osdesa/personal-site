@@ -8,11 +8,32 @@ pub struct RouteInfo {
     pub description: &'static str,
 }
 
+/// Typed, canonical HTTPS origin for every production absolute URL.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SiteOrigin(&'static str);
+
+impl SiteOrigin {
+    /// Returns the canonical origin without a trailing slash.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        self.0
+    }
+
+    /// Creates an absolute URL from a root-relative public path.
+    #[must_use]
+    pub fn absolute_url(self, path: &str) -> String {
+        debug_assert!(path.starts_with('/'));
+        format!("{}{}", self.0, path)
+    }
+}
+
+/// The single source of truth for the site's production origin.
+pub const PRODUCTION_ORIGIN: SiteOrigin = SiteOrigin("https://haydenfarrell.dev");
+
+/// Controlled local artwork used as the generic sharing image.
+pub const SOCIAL_IMAGE_PATH: &str = "/images/project-default.svg";
+
 /// Stable site-wide metadata visible in the initial client-rendered document.
-///
-/// A public origin has not yet been selected, so this deliberately contains no
-/// canonical URL or absolute sharing-asset URL. See `docs/web-quality.md` for
-/// the deployment-time metadata contract.
 pub const SITE_NAME: &str = "Hayden Farrell";
 pub const SITE_DESCRIPTION: &str =
     "Hayden Farrell - software engineer, selected projects and professional CV.";
@@ -53,4 +74,16 @@ pub fn metadata_for_path(path: &str) -> RouteInfo {
 
 pub fn title_for_path(path: &str) -> &'static str {
     metadata_for_path(path).title
+}
+
+/// Returns the canonical absolute URL for a known public route.
+#[must_use]
+pub fn canonical_url_for_path(path: &str) -> String {
+    PRODUCTION_ORIGIN.absolute_url(metadata_for_path(path).path)
+}
+
+/// Returns the absolute URL of the generic sharing artwork.
+#[must_use]
+pub fn social_image_url() -> String {
+    PRODUCTION_ORIGIN.absolute_url(SOCIAL_IMAGE_PATH)
 }
