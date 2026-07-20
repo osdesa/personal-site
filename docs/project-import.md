@@ -4,6 +4,12 @@ The Projects page and the homepage's selected-projects section both consume
 `src/generated_projects.rs`. That file is generated at build-maintenance time;
 the browser never calls GitHub and never receives an access token.
 
+The daily `sync-projects.yml` workflow runs at 05:41 UTC and can be dispatched
+manually. It uses `PORTFOLIO_GITHUB_TOKEN` only for source reads and
+`PORTFOLIO_SYNC_TOKEN` only to publish `automation/project-sync`; its trusted
+PR and CI-gated native auto-merge contract is documented in
+[`automation.md`](automation.md).
+
 ## Selection
 
 GitHub exposes authenticated user-curated repository lists through the

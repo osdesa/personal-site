@@ -21,6 +21,10 @@ name = "sync-projects"
 path = "src/bin/sync_projects.rs"
 required-features = ["project-sync"]
 
+[[bin]]
+name = "verify-auto-merge"
+path = "src/bin/verify_auto_merge.rs"
+
 [features]
 default = []
 cv-sync = []

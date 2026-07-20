@@ -63,6 +63,13 @@ list through GraphQL, with topic and allowlist fallbacks, retrieves optional
 caps them, and atomically generates `src/generated_projects.rs`. No partial
 remote result reaches the checked-in artifact.
 
+Scheduled GitHub Actions run the two native tools from trusted `main` code.
+They update a fixed automation branch/PR only when bytes change, verify the
+normal quality suite, and request GitHub native auto-merge only after
+same-repository, fixed-branch, authenticated-author and workflow-marker checks.
+Required CI and branch protection still decide when it may merge; Cloudflare
+Pages then deploys the resulting `main` commit.
+
 ## Runtime flow
 
 1. Trunk loads `index.html`, the generated stylesheet, controlled local image

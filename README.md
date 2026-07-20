@@ -243,11 +243,19 @@ artifact that is eligible for deployment.
 It executes the release synchronizer, runs formatting, Clippy, tests and a
 release tool build, then creates or updates `automation/cv-sync` only when the
 validated bundle differs. It never pushes source artifacts directly to `main`.
+After verifying its exact same-repository branch, authenticated writer, and
+workflow marker, it asks GitHub native auto-merge to wait for required CI and
+branch protection before merging.
 
 `.github/workflows/sync-projects.yml` runs daily at 05:41 UTC and on manual
 dispatch. It requires `PORTFOLIO_GITHUB_TOKEN`, preserves the current generated
 catalogue on any failure, validates the repository, and opens or updates the
-`automation/project-sync` pull request only when output differs.
+`automation/project-sync` pull request only when output differs. It applies the
+same narrow native auto-merge policy; arbitrary contributor and fork PRs are
+never eligible.
+
+See [`docs/automation.md`](docs/automation.md) for schedules, manual triggers,
+token purposes, auto-merge evidence, failure diagnosis, rotation and recovery.
 
 ## Production hosting
 
@@ -291,8 +299,9 @@ for the reliability and cache boundaries.
 - [`docs/architecture.md`](docs/architecture.md) describes the implemented boundaries and data flow.
 - [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 presentation contract.
 - [`docs/project-import.md`](docs/project-import.md) documents authenticated project selection, metadata and operation.
+- [`docs/automation.md`](docs/automation.md) documents scheduled generated-content publication and safe auto-merge.
 - [`docs/web-quality-milestone.md`](docs/web-quality-milestone.md) defines the staged accessibility, metadata, performance and deployment-readiness milestone.
-- [`docs/deployment.md`](docs/deployment.md) records the future static-hosting requirements and provider-selection checklist.
+- [`docs/deployment.md`](docs/deployment.md) records the confirmed Cloudflare Pages configuration and operations runbook.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
 - [`docs/adr/0002-event-specific-ci.md`](docs/adr/0002-event-specific-ci.md) records the event-specific CI strategy.
@@ -303,10 +312,11 @@ for the reliability and cache boundaries.
 - [`docs/adr/0007-browser-accessibility-regression-checks.md`](docs/adr/0007-browser-accessibility-regression-checks.md) records browser-level accessibility assurance.
 - [`docs/adr/0008-csr-metadata-and-performance-budgets.md`](docs/adr/0008-csr-metadata-and-performance-budgets.md) records truthful CSR metadata and local quality budgets.
 - [`docs/adr/0009-ci-bundle-reuse-and-quality-gates.md`](docs/adr/0009-ci-bundle-reuse-and-quality-gates.md) records shared release-bundle CI validation.
+- [`docs/adr/0010-cloudflare-pages-production-hosting.md`](docs/adr/0010-cloudflare-pages-production-hosting.md) records the production-hosting decision.
 
 ## Future work
 
-Deployment remains provider-neutral until a host is selected; see
+Cloudflare Pages provides production static hosting; see
 [`docs/deployment.md`](docs/deployment.md). Markdown articles, RSS, search,
 richer demonstrations and analytics are deferred until their requirements are
 concrete.

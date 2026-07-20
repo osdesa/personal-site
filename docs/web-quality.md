@@ -67,7 +67,8 @@ limits.
 | Measure | CI threshold | Rationale |
 | --- | --- | --- |
 | Performance score | at least 0.90 | Allows normal local/CI variance while catching a material regression. |
-| Accessibility, best-practices and SEO scores | 1.00 | Deterministic quality failures should be fixed, not averaged away. |
+| Accessibility and best-practices scores | 1.00 | Deterministic quality failures should be fixed, not averaged away. |
+| Local SEO score | at least 0.90 | Lighthouse treats client-route canonical links to the real HTTPS origin as cross-origin when it serves `dist/` from `127.0.0.1`; static-output validation checks those links exactly. Audit the deployed canonical origin at 1.00 before release. |
 | Transferred bytes | at most 550,000 bytes | Leaves roughly 15% headroom over the baseline but rejects an additional large payload. |
 | Cumulative layout shift | at most 0.05 | Leaves room for rendering variance while protecting stable card layout. |
 

@@ -96,7 +96,7 @@ test("mounted structured data is valid and excludes private contact data", async
     ]),
   );
   expect(structuredData).not.toContain("haydenfarrell@outlook.com");
-  expect(structuredData).not.toContain('"url"');
+  expect(structuredData).toContain('"url":"https://haydenfarrell.dev"');
 });
 
 test("skip link moves keyboard focus into main content", async ({ page }) => {

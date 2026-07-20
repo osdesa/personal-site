@@ -5,6 +5,7 @@
 //! in `tests/`.
 
 pub mod app;
+pub mod automation;
 pub mod components;
 pub mod content;
 pub mod cv;

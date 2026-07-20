@@ -11,6 +11,8 @@ preserving paths and query strings.
 Pages deploys each merge to `main`. This delivery signal does not replace the
 required GitHub Actions `CI` checks: Rust quality, production bundle,
 accessibility and main-branch Lighthouse checks remain the correctness gate.
+The scheduled CV and project workflows publish only through their trusted,
+CI-gated automation PRs; see [`automation.md`](automation.md).
 
 The Pages dashboard is intentionally free of `CV_SYNC_TOKEN`,
 `PORTFOLIO_SYNC_TOKEN`, and `PORTFOLIO_GITHUB_TOKEN`. They are GitHub Actions
