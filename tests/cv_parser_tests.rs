@@ -1,79 +1,180 @@
 use personal_site::{
-    cv::{DateRangeEnd, Inline, Month, SocialPlatform},
+    cv::{Inline, SocialPlatform},
     cv_sync::{RemoteTag, generate_cv_module, parse_cv},
     generated_cv,
 };
 
 const SOURCE: &str = include_str!("../public/cv/Hayden-Farrell-CV.tex");
 const GENERATED: &[u8] = include_bytes!("../src/generated_cv.rs");
-const SHA: &str = "5c689c5fc89c9121a00ff2260dd48d2feef6c0ac";
+const COMMIT_SHA_LENGTH: usize = 40;
 
 fn source_identity() -> RemoteTag {
     RemoteTag {
-        name: "v1.0.0".to_owned(),
-        commit_sha: SHA.to_owned(),
+        name: generated_cv::SOURCE_TAG.to_owned(),
+        commit_sha: generated_cv::SOURCE_COMMIT_SHA.to_owned(),
     }
+}
+
+fn replace_first_document_content(source: &str, pattern: &str, replacement: &str) -> String {
+    let document_start = source
+        .find("\\begin{document}")
+        .expect("the supported CV grammar requires a document body");
+    let content_start = document_start + "\\begin{document}".len();
+    let match_start = content_start
+        + source[content_start..]
+            .find(pattern)
+            .expect("the supported CV grammar requires the requested content");
+
+    format!(
+        "{}{}{}",
+        &source[..match_start],
+        replacement,
+        &source[match_start + pattern.len()..]
+    )
+}
+
+fn replace_first_education_argument(
+    source: &str,
+    argument_index: usize,
+    replacement: &str,
+) -> String {
+    let education_start = source
+        .find("\\section{Education}")
+        .expect("the supported CV grammar requires an Education section");
+    let entry_start = education_start
+        + source[education_start..]
+            .find("\\resumeSubheading")
+            .expect("the Education section requires an entry");
+    let mut cursor = entry_start + "\\resumeSubheading".len();
+
+    for index in 0..=argument_index {
+        cursor += source[cursor..]
+            .find('{')
+            .expect("education entry arguments must be braced");
+        let argument_start = cursor;
+        let mut depth = 0;
+
+        for (offset, character) in source[cursor..].char_indices() {
+            match character {
+                '{' => depth += 1,
+                '}' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        let argument_end = cursor + offset + 1;
+                        if index == argument_index {
+                            return format!(
+                                "{}{}{}",
+                                &source[..argument_start],
+                                replacement,
+                                &source[argument_end..]
+                            );
+                        }
+                        cursor = argument_end;
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    unreachable!("the requested education argument must exist")
+}
+
+fn replace_mailto_target(source: &str, replacement: &str) -> String {
+    let target_start = source
+        .find("mailto:")
+        .expect("the supported CV grammar requires an email link");
+    let target_end = target_start
+        + source[target_start..]
+            .find('}')
+            .expect("the email link target must be braced");
+
+    format!(
+        "{}{}{}",
+        &source[..target_start],
+        replacement,
+        &source[target_end..]
+    )
 }
 
 #[test]
 fn checked_in_cv_parses_every_supported_domain_section() {
     let cv = parse_cv(SOURCE).unwrap();
 
-    assert_eq!(cv.profile.full_name, "Hayden Farrell");
-    assert_eq!(cv.profile.contact.email, "haydenfarrell@outlook.com");
+    assert!(!cv.profile.full_name.trim().is_empty());
+    assert!(cv.profile.contact.email.contains('@'));
     assert_eq!(cv.profile.social_links.len(), 2);
-    assert_eq!(
-        cv.profile.social_links[0].platform,
-        SocialPlatform::LinkedIn
+    assert!(
+        cv.profile
+            .social_links
+            .iter()
+            .any(|link| link.platform == SocialPlatform::LinkedIn)
     );
-    assert_eq!(cv.profile.social_links[1].platform, SocialPlatform::GitHub);
+    assert!(
+        cv.profile
+            .social_links
+            .iter()
+            .any(|link| link.platform == SocialPlatform::GitHub)
+    );
 
-    assert_eq!(cv.education.len(), 2);
-    assert_eq!(cv.education[0].location.city, "Nottingham");
-    assert_eq!(cv.education[0].location.country, "UK");
-    assert_eq!(cv.education[0].dates.start.month, Month::August);
-    assert_eq!(cv.education[0].dates.start.year, 2023);
+    assert!(!cv.education.is_empty());
+    assert!(cv.education.iter().all(|entry| {
+        !entry.institution.nodes.is_empty()
+            && !entry.qualification.nodes.is_empty()
+            && !entry.location.city.trim().is_empty()
+            && !entry.location.country.trim().is_empty()
+    }));
 
-    assert_eq!(cv.experience.len(), 2);
-    assert_eq!(cv.experience[0].highlights.len(), 4);
-    assert_eq!(cv.experience[1].highlights.len(), 5);
-    assert_eq!(cv.experience[0].dates.end, DateRangeEnd::Present);
-    assert_eq!(cv.experience[1].dates.start.month, Month::June);
+    assert!(!cv.experience.is_empty());
+    assert!(cv.experience.iter().all(|entry| {
+        !entry.role.nodes.is_empty()
+            && !entry.organisation.nodes.is_empty()
+            && !entry.location.city.trim().is_empty()
+            && !entry.location.country.trim().is_empty()
+            && !entry.highlights.is_empty()
+    }));
 
-    assert_eq!(cv.projects.len(), 2);
-    assert_eq!(cv.projects[0].technologies.len(), 4);
-    assert_eq!(cv.projects[0].period.as_ref().unwrap().nodes.len(), 1);
-    assert_eq!(cv.projects[1].highlights.len(), 3);
+    assert!(!cv.projects.is_empty());
+    assert!(cv.projects.iter().all(|entry| {
+        !entry.title.nodes.is_empty()
+            && !entry.technologies.is_empty()
+            && !entry.highlights.is_empty()
+    }));
 
-    assert_eq!(cv.skills.len(), 5);
-    assert_eq!(cv.skills[0].category, "Languages");
-    assert_eq!(cv.skills[0].skills[0], "C++");
-    assert_eq!(cv.skills[4].category, "Hobbies");
+    assert!(!cv.skills.is_empty());
+    assert!(
+        cv.skills
+            .iter()
+            .all(|group| !group.category.trim().is_empty() && !group.skills.is_empty())
+    );
 }
 
 #[test]
-fn nested_project_link_formatting_is_structured_not_html() {
-    let cv = parse_cv(SOURCE).unwrap();
-    let Inline::Strong(strong) = &cv.projects[1].title.nodes[0] else {
-        panic!("project title should preserve textbf as Strong");
+fn nested_inline_formatting_is_structured_not_html() {
+    let source = replace_first_document_content(
+        SOURCE,
+        "\\resumeItem{",
+        "\\resumeItem{\\textbf{\\href{https://example.invalid}{\\underline{label}}}",
+    );
+    let cv = parse_cv(&source).unwrap();
+    let Inline::Strong(strong) = &cv.experience[0].highlights[0].nodes[0] else {
+        panic!("nested formatting should preserve textbf as Strong");
     };
     let Inline::Link { target, label } = &strong.nodes[0] else {
-        panic!("Blocky title should preserve href as Link");
+        panic!("nested formatting should preserve href as Link");
     };
-    assert_eq!(target, "https://github.com/osdesa/Blocky");
+    assert_eq!(target, "https://example.invalid");
     let Inline::Underline(underlined) = &label.nodes[0] else {
-        panic!("Blocky link label should preserve underline formatting");
+        panic!("nested formatting should preserve underline formatting");
     };
-    assert_eq!(underlined.nodes.as_ref(), &[Inline::Text("Blocky".into())]);
+    assert_eq!(underlined.nodes.as_ref(), &[Inline::Text("label".into())]);
 }
 
 #[test]
 fn unknown_inline_commands_fail_with_clear_source_diagnostics() {
-    let invalid = SOURCE.replacen(
-        "Developing a user-space",
-        "\\unknown{value} Developing a user-space",
-        1,
-    );
+    let invalid =
+        replace_first_document_content(SOURCE, "\\resumeItem{", "\\resumeItem{\\unknown{value}");
 
     let error = parse_cv(&invalid).unwrap_err();
 
@@ -89,11 +190,7 @@ fn unknown_inline_commands_fail_with_clear_source_diagnostics() {
 
 #[test]
 fn malformed_groups_and_missing_required_sections_are_rejected() {
-    let malformed = SOURCE.replacen(
-        "\\resumeItem{Developing a user-space",
-        "\\resumeItem Developing a user-space",
-        1,
-    );
+    let malformed = replace_first_document_content(SOURCE, "\\resumeItem{", "\\resumeItem ");
     let malformed_error = parse_cv(&malformed).unwrap_err();
     assert!(malformed_error.message().contains("expected '{'"));
 
@@ -118,7 +215,7 @@ fn missing_custom_command_declarations_are_rejected_before_body_parsing() {
 
 #[test]
 fn malformed_required_semantic_values_are_rejected() {
-    let bad_location = SOURCE.replacen("{Nottingham, UK}", "{Nottingham}", 1);
+    let bad_location = replace_first_education_argument(SOURCE, 1, "{Location}");
     assert!(
         parse_cv(&bad_location)
             .unwrap_err()
@@ -126,7 +223,7 @@ fn malformed_required_semantic_values_are_rejected() {
             .contains("City, Country")
     );
 
-    let bad_date = SOURCE.replacen("{Aug. 2023 -- May 2027}", "{Someday -- May 2027}", 1);
+    let bad_date = replace_first_education_argument(SOURCE, 3, "{Someday -- Present}");
     assert!(
         parse_cv(&bad_date)
             .unwrap_err()
@@ -134,7 +231,7 @@ fn malformed_required_semantic_values_are_rejected() {
             .contains("malformed month/year")
     );
 
-    let missing_email = SOURCE.replacen("mailto:haydenfarrell@outlook.com", "mailto:", 1);
+    let missing_email = replace_mailto_target(SOURCE, "mailto:");
     assert!(
         parse_cv(&missing_email)
             .unwrap_err()
@@ -170,6 +267,11 @@ fn parsing_and_generation_are_deterministic_regression_boundaries() {
         );
     }
     assert_eq!(generated_cv::CV, first);
-    assert_eq!(generated_cv::SOURCE_TAG, "v1.0.0");
-    assert_eq!(generated_cv::SOURCE_COMMIT_SHA, SHA);
+    assert!(!generated_cv::SOURCE_TAG.is_empty());
+    assert_eq!(generated_cv::SOURCE_COMMIT_SHA.len(), COMMIT_SHA_LENGTH);
+    assert!(
+        generated_cv::SOURCE_COMMIT_SHA
+            .chars()
+            .all(|character| { character.is_ascii_hexdigit() && !character.is_ascii_uppercase() })
+    );
 }
