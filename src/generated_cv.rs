@@ -8,9 +8,9 @@ use crate::cv::{
 };
 
 /// Upstream semantic tag used to generate [`CV`].
-pub const SOURCE_TAG: &str = "v1.0.0";
+pub const SOURCE_TAG: &str = "v1.0.1";
 /// Immutable upstream commit used to generate [`CV`].
-pub const SOURCE_COMMIT_SHA: &str = "5c689c5fc89c9121a00ff2260dd48d2feef6c0ac";
+pub const SOURCE_COMMIT_SHA: &str = "9b7b9ea7a0416f2f091553a2bf12e5469cf6616f";
 
 /// CV data validated and generated from the synchronized LaTeX source.
 #[rustfmt::skip]
@@ -28,7 +28,7 @@ pub static CV: Cv<'static> = Cv {
                     nodes: Cow::Borrowed(&[
                         Inline::Underline(RichText {
                             nodes: Cow::Borrowed(&[
-                                Inline::Text(Cow::Borrowed("linkedin/haydenfarrell")),
+                                Inline::Text(Cow::Borrowed("linkedin")),
                             ]),
                         }),
                     ]),
@@ -41,7 +41,7 @@ pub static CV: Cv<'static> = Cv {
                     nodes: Cow::Borrowed(&[
                         Inline::Underline(RichText {
                             nodes: Cow::Borrowed(&[
-                                Inline::Text(Cow::Borrowed("github.com/osdesa")),
+                                Inline::Text(Cow::Borrowed("github")),
                             ]),
                         }),
                     ]),
