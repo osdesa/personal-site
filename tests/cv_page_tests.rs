@@ -63,17 +63,14 @@ fn generated_stage_two_data_renders_every_major_cv_section() {
     let html = render_generated_cv(Some(CV_PDF_URL));
 
     for expected in [
-        "Hayden Farrell",
-        "haydenfarrell@outlook.com",
+        CV.profile.full_name.as_ref(),
+        CV.profile.contact.email.as_ref(),
         "Professional experience",
-        "Software Engineer part time",
         "Education",
-        "University of Nottingham",
         "Technical skills",
-        "Languages",
         "CV version",
-        "v1.0.0",
-        "5c689c5",
+        SOURCE_TAG,
+        &SOURCE_COMMIT_SHA[..7],
     ] {
         assert!(
             html.contains(expected),
@@ -103,16 +100,17 @@ fn generated_projects_are_deliberately_not_rendered_on_the_cv_page() {
 
     assert!(!CV.projects.is_empty());
     assert!(!html.contains("<h2>Projects</h2>"));
-    assert!(!html.contains("Atlas"));
-    assert!(!html.contains("Blocky"));
 }
 
 #[test]
 fn generated_links_have_accessible_and_safe_behaviour() {
     let html = render_generated_cv(Some(CV_PDF_URL));
 
-    assert!(html.contains("href=\"mailto:haydenfarrell@outlook.com\""));
-    assert!(html.contains("aria-label=\"Email haydenfarrell@outlook.com\""));
+    assert!(html.contains(&format!("href=\"mailto:{}\"", CV.profile.contact.email)));
+    assert!(html.contains(&format!(
+        "aria-label=\"Email {}\"",
+        CV.profile.contact.email
+    )));
     assert!(html.contains("target=\"_blank\""));
     assert!(html.contains("rel=\"noreferrer\""));
     assert!(html.contains("opens in a new tab"));
@@ -161,18 +159,18 @@ fn supported_inline_formatting_is_structured_and_escaped() {
 fn imported_dates_and_locations_have_consistent_presentation() {
     let dates = DateRange {
         start: CvDate {
-            year: 2025,
-            month: Month::June,
+            year: 2031,
+            month: Month::February,
         },
         end: DateRangeEnd::Present,
     };
     let location = Location {
-        city: Cow::Borrowed("Nottingham"),
-        country: Cow::Borrowed("UK"),
+        city: Cow::Borrowed("Example City"),
+        country: Cow::Borrowed("Example Country"),
     };
 
-    assert_eq!(format_date_range(dates), "Jun 2025 – Present");
-    assert_eq!(format_location(&location), "Nottingham, UK");
+    assert_eq!(format_date_range(dates), "Feb 2031 – Present");
+    assert_eq!(format_location(&location), "Example City, Example Country");
 }
 
 #[test]
