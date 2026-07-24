@@ -70,7 +70,9 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.PORTFOLIO_SYNC_TOKEN }}
-          add-paths: src/generated_projects.rs
+          add-paths: |
+            src/generated_projects.rs
+            public/images/projects/*.png
           branch: automation/project-sync
           base: main
           delete-branch: true
@@ -82,8 +84,9 @@ jobs:
 
             The Rust synchronizer selected the authenticated `portfolio` list
             (or a documented topic/allowlist fallback), fetched optional metadata,
-            filtered archived repositories and forks, and generated deterministic
-            static Rust data without exposing the token.
+            synchronized optional repository thumbnails, filtered archived repositories
+            and forks, and generated deterministic static Rust data without exposing
+            the token.
 
       - name: Verify auto-merge eligibility and enable native auto-merge
         if: steps.create-pr.outputs.pull-request-number != ''

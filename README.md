@@ -189,9 +189,10 @@ GitHub's GraphQL user-list API makes the named `portfolio` starred list the
 primary source of truth. The `portfolio` repository topic and the seeded
 allowlist in `portfolio-projects.toml` are ordered fallbacks. A daily
 authenticated workflow reads public and private
-repository metadata plus optional `.github/portfolio.toml` overrides, excludes
-archives and forks by default, sorts by portfolio/creation date, keeps four,
-and atomically generates `src/generated_projects.rs`.
+repository metadata plus optional `.github/portfolio.toml` overrides and
+`.github/thumbnail.png` artwork, excludes archives and forks by default, sorts
+by portfolio/creation date, keeps four, and atomically generates
+`src/generated_projects.rs` with local static thumbnails.
 
 The `PORTFOLIO_GITHUB_TOKEN` Actions secret needs fine-grained Starring,
 Metadata and Contents read access. Run the synchronization manually with:

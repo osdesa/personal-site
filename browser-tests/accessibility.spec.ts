@@ -51,7 +51,7 @@ for (const route of routes) {
 }
 
 test("written project content remains available when a project image fails", async ({ page }) => {
-  await page.route("**/images/project-default.svg", (route) => route.abort("failed"));
+  await page.route("**/images/**", (route) => route.abort("failed"));
   await page.goto("/projects");
 
   await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
@@ -136,9 +136,9 @@ test.describe("mobile navigation", () => {
 
     await closeMenuButton.focus();
     await page.keyboard.press("Tab");
-    await expect(page.locator(":focus")).toHaveText("01Home");
+    await expect(page.locator(":focus")).toHaveText("Home");
     await page.keyboard.press("Tab");
-    await expect(page.locator(":focus")).toHaveText("02Projects");
+    await expect(page.locator(":focus")).toHaveText("Projects");
     await page.keyboard.press("Enter");
 
     await expect(page).toHaveURL("/projects");

@@ -7,8 +7,8 @@ use personal_site::projects::{Project, ProjectVisibility};
 fn generated_projects_render_through_the_shared_card_component() {
     let html = view! {
         <div>
-            {PROJECTS.iter().enumerate().map(|(index, project)| view! {
-                <ProjectCard project=*project index=index />
+            {PROJECTS.iter().map(|project| view! {
+                <ProjectCard project=*project />
             }).collect_view()}
         </div>
     }
@@ -18,6 +18,9 @@ fn generated_projects_render_through_the_shared_card_component() {
         assert!(html.contains(project.summary));
     }
     assert!(html.contains("project-card"));
+    assert!(!html.contains("project-card__number"));
+    assert!(html.contains("project-card__status--active"));
+    assert!(html.contains("project-card__status--completed"));
 }
 
 #[test]
@@ -70,4 +73,13 @@ fn only_projects_page_consumes_the_generated_catalogue() {
     assert!(!home_source.contains("generated_projects::PROJECTS"));
     assert!(projects_source.contains("generated_projects::PROJECTS"));
     assert!(!projects_source.contains("src/content.rs"));
+}
+
+#[test]
+fn project_and_mobile_navigation_ordinals_are_not_rendered() {
+    let card_source = include_str!("../src/components/project_card.rs");
+    let navigation_source = include_str!("../src/components/site_shell.rs");
+
+    assert!(!card_source.contains("project-card__number"));
+    assert!(!navigation_source.contains("format!(\"0{}\""));
 }

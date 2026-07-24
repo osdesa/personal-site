@@ -23,3 +23,12 @@ pub const GENERATED_PROJECTS_PATH: &str = "src/generated_projects.rs";
 
 /// Default artwork used when a repository supplies no featured image.
 pub const DEFAULT_PROJECT_IMAGE: &str = "/images/project-default.svg";
+
+/// Repository-relative directory for synchronized project thumbnails.
+pub const PROJECT_IMAGES_PATH: &str = "public/images/projects";
+
+/// Public URL prefix for synchronized project thumbnails.
+pub const PROJECT_IMAGE_URL_PREFIX: &str = "/images/projects";
+
+/// Required optional-thumbnail path within each selected project repository.
+pub const PROJECT_THUMBNAIL_PATH: &str = ".github/thumbnail.png";

@@ -21,8 +21,8 @@ pub fn ProjectsPage() -> impl IntoView {
                     <p>"Newest first"</p>
                 </div>
                 <div class="project-grid">
-                    {projects.iter().enumerate().map(|(index, project)| view! {
-                        <ProjectCard project=*project index=index />
+                    {projects.iter().map(|project| view! {
+                        <ProjectCard project=*project />
                     }).collect_view()}
                 </div>
             </Container>

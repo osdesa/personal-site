@@ -4,8 +4,7 @@ use crate::components::SkillBadge;
 use crate::projects::{Project, ProjectVisibility};
 
 #[component]
-pub fn ProjectCard(project: Project, #[prop(optional)] index: usize) -> impl IntoView {
-    let number = format!("{:02}", index + 1);
+pub fn ProjectCard(project: Project) -> impl IntoView {
     let visibility = match project.visibility {
         ProjectVisibility::Public => "Public",
         ProjectVisibility::Private => "Private repository",
@@ -17,7 +16,6 @@ pub fn ProjectCard(project: Project, #[prop(optional)] index: usize) -> impl Int
     view! {
         <article class="project-card">
             <div class="project-card__visual" aria-hidden="true">
-                <span class="project-card__number">{number}</span>
                 <img
                     class="project-card__image"
                     src=project.image_url
@@ -36,7 +34,7 @@ pub fn ProjectCard(project: Project, #[prop(optional)] index: usize) -> impl Int
                     <time datetime=project.project_date>{project.project_date}</time>
                     {project.status.map(|status| view! {
                         <span aria-hidden="true">"•"</span>
-                        <span>{status}</span>
+                        <span class=status_class(status)>{status}</span>
                     })}
                 </div>
                 <h2>{project.title}</h2>
@@ -72,5 +70,13 @@ pub fn ProjectCard(project: Project, #[prop(optional)] index: usize) -> impl Int
                 })}
             </div>
         </article>
+    }
+}
+
+fn status_class(status: &str) -> &'static str {
+    match status {
+        "Active" => "project-card__status project-card__status--active",
+        "Completed" => "project-card__status project-card__status--completed",
+        _ => "project-card__status",
     }
 }

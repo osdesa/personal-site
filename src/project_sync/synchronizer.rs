@@ -3,7 +3,10 @@ use std::{cmp::Ordering, collections::HashSet};
 use serde::Deserialize;
 use thiserror::Error;
 
-use super::{DEFAULT_PROJECT_IMAGE, ProjectDataStore, ProjectSyncConfig, generate_projects_module};
+use super::{
+    DEFAULT_PROJECT_IMAGE, PROJECT_IMAGE_URL_PREFIX, ProjectDataStore, ProjectSyncConfig,
+    generate_projects_module,
+};
 
 /// A repository response containing only fields used by the portfolio.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
@@ -32,7 +35,6 @@ pub struct PortfolioMetadata {
     pub status: Option<String>,
     pub technologies: Option<Vec<String>>,
     pub highlights: Option<Vec<String>>,
-    pub image: Option<String>,
     pub demo_url: Option<String>,
     pub show_repository: Option<bool>,
     #[serde(default)]
@@ -76,6 +78,7 @@ pub trait ProjectSource {
     fn accessible_repositories(&self) -> Result<Vec<RemoteRepository>, ProjectSyncError>;
     fn repository(&self, full_name: &str) -> Result<RemoteRepository, ProjectSyncError>;
     fn portfolio_metadata(&self, full_name: &str) -> Result<Option<String>, ProjectSyncError>;
+    fn project_thumbnail(&self, full_name: &str) -> Result<Option<Vec<u8>>, ProjectSyncError>;
 }
 
 /// Result of a successful synchronization.
@@ -171,9 +174,19 @@ pub fn synchronize(
         candidates.push((repository, metadata.unwrap_or_default()));
     }
 
-    let projects = normalize_projects(candidates, config.limit)?;
+    let mut projects = normalize_projects(candidates, config.limit)?;
+    let mut thumbnails = Vec::new();
+    for project in &mut projects {
+        let Some(thumbnail) = source.project_thumbnail(&project.repository)? else {
+            continue;
+        };
+        validate_thumbnail(&project.repository, &thumbnail)?;
+        let file_name = format!("{}.png", project.id);
+        project.image_url = format!("{PROJECT_IMAGE_URL_PREFIX}/{file_name}");
+        thumbnails.push((file_name, thumbnail));
+    }
     let generated = generate_projects_module(&projects);
-    let changed = store.commit_if_changed(&generated)?;
+    let changed = store.commit_if_changed(&generated, &thumbnails)?;
     Ok(if changed {
         SyncOutcome::Updated {
             projects: projects.len(),
@@ -235,11 +248,7 @@ pub fn normalize_projects(
         if let Some(url) = &demo_url {
             validate_https_url(url, "demo URL")?;
         }
-        let image_url = metadata
-            .image
-            .and_then(non_blank)
-            .filter(|path| is_controlled_image_path(path))
-            .unwrap_or_else(|| DEFAULT_PROJECT_IMAGE.to_owned());
+        let image_url = DEFAULT_PROJECT_IMAGE.to_owned();
         let show_repository = metadata.show_repository.unwrap_or(!repository.private);
         let id = repository
             .full_name
@@ -361,10 +370,27 @@ fn validate_https_url(value: &str, label: &str) -> Result<(), ProjectSyncError> 
     Ok(())
 }
 
-fn is_controlled_image_path(value: &str) -> bool {
-    value.starts_with("/images/")
-        && !value.starts_with("//")
-        && !value.chars().any(char::is_whitespace)
+fn validate_thumbnail(repository: &str, bytes: &[u8]) -> Result<(), ProjectSyncError> {
+    const PNG_SIGNATURE: &[u8] = b"\x89PNG\r\n\x1a\n";
+    const IHDR_LENGTH: [u8; 4] = [0, 0, 0, 13];
+
+    if bytes.len() < 24
+        || !bytes.starts_with(PNG_SIGNATURE)
+        || bytes[8..12] != IHDR_LENGTH
+        || bytes[12..16] != *b"IHDR"
+    {
+        return Err(ProjectSyncError::Validation(format!(
+            "{repository}/.github/thumbnail.png must be a valid PNG"
+        )));
+    }
+    let width = u32::from_be_bytes(bytes[16..20].try_into().expect("PNG width is present"));
+    let height = u32::from_be_bytes(bytes[20..24].try_into().expect("PNG height is present"));
+    if width == 0 || height == 0 {
+        return Err(ProjectSyncError::Validation(format!(
+            "{repository}/.github/thumbnail.png must have non-zero dimensions"
+        )));
+    }
+    Ok(())
 }
 
 fn non_empty(value: Option<String>, fallback: impl FnOnce() -> String) -> String {

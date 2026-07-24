@@ -4,12 +4,13 @@ use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::json;
 use ureq::Agent;
 
-use super::{ProjectSource, ProjectSyncError, RemoteRepository};
+use super::{PROJECT_THUMBNAIL_PATH, ProjectSource, ProjectSyncError, RemoteRepository};
 
 const GITHUB_API_VERSION: &str = "2022-11-28";
 const REPOSITORIES_PER_PAGE: usize = 100;
 const MAX_REPOSITORY_PAGES: usize = 100;
 const MAX_METADATA_BYTES: usize = 256 * 1024;
+const MAX_THUMBNAIL_BYTES: usize = 5 * 1024 * 1024;
 const GRAPHQL_PAGE_SIZE: usize = 100;
 const MAX_GRAPHQL_PAGES: usize = 100;
 
@@ -365,5 +366,38 @@ impl ProjectSource for GitHubProjectSource {
         String::from_utf8(bytes)
             .map(Some)
             .map_err(|_| ProjectSyncError::Validation("portfolio metadata is not UTF-8".to_owned()))
+    }
+
+    fn project_thumbnail(&self, full_name: &str) -> Result<Option<Vec<u8>>, ProjectSyncError> {
+        let url = format!(
+            "{}/repos/{full_name}/contents/{PROJECT_THUMBNAIL_PATH}",
+            self.api_base_url
+        );
+        let request = self
+            .request(&url)
+            .header("Accept", "application/vnd.github.raw+json");
+        let mut response = match request.call() {
+            Ok(response) => response,
+            Err(ureq::Error::StatusCode(404)) => return Ok(None),
+            Err(error) => {
+                return Err(ProjectSyncError::Remote(format!(
+                    "could not fetch {full_name}/{PROJECT_THUMBNAIL_PATH}: {error}"
+                )));
+            }
+        };
+        let bytes = response
+            .body_mut()
+            .with_config()
+            .limit((MAX_THUMBNAIL_BYTES + 1) as u64)
+            .read_to_vec()
+            .map_err(|error| {
+                ProjectSyncError::Remote(format!("could not read project thumbnail: {error}"))
+            })?;
+        if bytes.len() > MAX_THUMBNAIL_BYTES {
+            return Err(ProjectSyncError::Validation(format!(
+                "{full_name}/{PROJECT_THUMBNAIL_PATH} exceeds {MAX_THUMBNAIL_BYTES} bytes"
+            )));
+        }
+        Ok(Some(bytes))
     }
 }

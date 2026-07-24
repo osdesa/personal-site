@@ -62,7 +62,7 @@ pub fn SiteShell(children: Children) -> impl IntoView {
                 inert=move || !menu_open.get()
             >
                 <ul class="container">
-                    {NAVIGATION_ROUTES.iter().enumerate().map(|(index, route)| view! {
+                    {NAVIGATION_ROUTES.iter().map(|route| view! {
                         <li>
                             <A
                                 href=route.path
@@ -72,7 +72,6 @@ pub fn SiteShell(children: Children) -> impl IntoView {
                                     focus_main_content();
                                 }
                             >
-                                <span aria-hidden="true">{format!("0{}", index + 1)}</span>
                                 {route.label}
                             </A>
                         </li>
