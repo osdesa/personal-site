@@ -6,7 +6,7 @@ use leptos_router::{
 };
 
 use crate::components::{SiteShell, StructuredData};
-use crate::pages::{CvPage, HomePage, NotFoundPage, ProjectsPage};
+use crate::pages::{CvPage, HomePage, LegalNoticePage, NotFoundPage, ProjectsPage};
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -20,6 +20,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("") view=HomePage />
                     <Route path=path!("projects") view=ProjectsPage />
                     <Route path=path!("cv") view=CvPage />
+                    <Route path=path!("legal-notice") view=LegalNoticePage />
                 </Routes>
             </SiteShell>
         </Router>

@@ -22,6 +22,13 @@ const routes = [
       "Hayden Farrell's generated curriculum vitae: experience, education, projects and technical skills.",
   },
   {
+    name: "legal notice",
+    path: "/legal-notice",
+    title: "Legal notice | Hayden Farrell",
+    description:
+      "Legal, privacy and website-use information for Hayden Farrell's portfolio.",
+  },
+  {
     name: "not found",
     path: "/a-route-that-does-not-exist",
     title: "Page not found | Hayden Farrell",

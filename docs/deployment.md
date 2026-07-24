@@ -41,6 +41,7 @@ After a deployment, directly open and refresh:
 - `https://haydenfarrell.dev/`
 - `https://haydenfarrell.dev/projects`
 - `https://haydenfarrell.dev/cv`
+- `https://haydenfarrell.dev/legal-notice`
 - `https://haydenfarrell.dev/cv/Hayden-Farrell-CV.pdf`
 - `https://haydenfarrell.dev/robots.txt`
 - `https://haydenfarrell.dev/sitemap.xml`
