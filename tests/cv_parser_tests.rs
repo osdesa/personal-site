@@ -236,8 +236,40 @@ fn malformed_required_semantic_values_are_rejected() {
         parse_cv(&missing_email)
             .unwrap_err()
             .message()
-            .contains("email address is malformed")
+            .contains("valid absolute HTTPS URL or mailto address")
     );
+}
+
+#[test]
+fn imported_links_require_complete_safe_destinations() {
+    let incomplete_https = replace_first_document_content(
+        SOURCE,
+        "\\resumeItem{",
+        "\\resumeItem{\\href{https://}{label} ",
+    );
+    assert!(
+        parse_cv(&incomplete_https)
+            .unwrap_err()
+            .message()
+            .contains("valid absolute HTTPS URL")
+    );
+
+    let mailto_headers = replace_mailto_target(
+        SOURCE,
+        "mailto:haydenfarrell@outlook.com?bcc=unexpected@example.com",
+    );
+    assert!(
+        parse_cv(&mailto_headers)
+            .unwrap_err()
+            .message()
+            .contains("valid absolute HTTPS URL or mailto address")
+    );
+
+    let encoded_mailto_headers = replace_mailto_target(
+        SOURCE,
+        "mailto:hayden@example.com%0d%0abcc:unexpected@example.com",
+    );
+    assert!(parse_cv(&encoded_mailto_headers).is_err());
 }
 
 #[test]

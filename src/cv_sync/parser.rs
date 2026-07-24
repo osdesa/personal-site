@@ -806,8 +806,11 @@ fn validate_link_target(target: &str) -> Result<(), &'static str> {
     if target.contains(char::is_whitespace) {
         return Err("link targets must not contain whitespace");
     }
-    if target.starts_with("https://") || target.starts_with("mailto:") {
+    if crate::url_policy::is_safe_https_url(target) || crate::url_policy::is_safe_mailto_url(target)
+    {
         Ok(())
+    } else if target.starts_with("https://") || target.starts_with("mailto:") {
+        Err("link targets must be a valid absolute HTTPS URL or mailto address")
     } else {
         Err("links must use an absolute HTTPS or mailto target")
     }

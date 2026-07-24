@@ -13,7 +13,8 @@ echo "Installing the minimal stable Rust toolchain..."
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 
 # rustup installs Cargo under the current build user's home directory.
-# shellcheck disable=SC1090
+# rustup creates this file during the build.
+# shellcheck disable=SC1091
 source "$HOME/.cargo/env"
 
 echo "Adding the WebAssembly compilation target..."

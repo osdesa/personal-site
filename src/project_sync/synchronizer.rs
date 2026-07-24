@@ -362,9 +362,9 @@ fn validate_date(value: &str, label: &str) -> Result<(), ProjectSyncError> {
 }
 
 fn validate_https_url(value: &str, label: &str) -> Result<(), ProjectSyncError> {
-    if !value.starts_with("https://") || value.chars().any(char::is_whitespace) {
+    if !crate::url_policy::is_safe_https_url(value) {
         return Err(ProjectSyncError::Validation(format!(
-            "{label} must be an HTTPS URL"
+            "{label} must be an absolute HTTPS URL without credentials"
         )));
     }
     Ok(())

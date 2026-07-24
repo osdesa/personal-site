@@ -5,8 +5,8 @@
 Rust integration tests validate content and rendered component contracts, but
 they cannot verify browser-only concerns such as computed contrast, landmarks,
 keyboard focus, responsive overflow or reduced-motion media queries. The web
-quality milestone requires repeatable evidence for the three public routes and
-the not-found view without changing the static Leptos/Trunk architecture.
+quality milestone requires repeatable evidence for every public route and the
+not-found view without changing the static Leptos/Trunk architecture.
 
 ## Alternatives
 

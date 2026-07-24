@@ -12,8 +12,7 @@ token set or browser theme persistence.
 
 The homepage opens with a viewport-scale introduction: oversized name,
 one-line role and summary, two actions, and plain professional links over a
-restrained gradient. A separate section below presents the generated project
-catalogue. The page contains no profile imagery.
+restrained gradient. The page contains no profile imagery.
 
 ## Tokens
 
@@ -73,8 +72,6 @@ The design responds by content needs rather than device names:
 - at 52rem: mobile navigation, single-column hero/interior layouts
 - at 40rem: single-column project grids, full-width calls to action and compact
   footer arrangement
-- at 23rem: the wordmark label hides to protect narrow layouts
-
 The homepage hero uses additional height queries to reduce type size and
 supporting text on short viewports.
 

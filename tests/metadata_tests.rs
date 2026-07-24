@@ -11,6 +11,8 @@ fn initial_document_has_truthful_site_wide_share_metadata() {
     let document = include_str!("../index.html");
 
     for expected in [
+        "id=\"site-canonical\"",
+        "id=\"site-og-url\"",
         "<meta property=\"og:type\" content=\"website\" />",
         "<meta property=\"og:site_name\" content=\"Hayden Farrell\" />",
         "<meta name=\"twitter:card\" content=\"summary\" />",
@@ -25,6 +27,19 @@ fn initial_document_has_truthful_site_wide_share_metadata() {
     assert!(document.contains(SITE_NAME));
     assert!(document.contains(SITE_DESCRIPTION));
     assert!(document.contains(HOME.title));
+}
+
+#[test]
+fn static_metadata_has_stable_client_handoff_identifiers() {
+    let document = include_str!("../index.html");
+
+    for id in ["site-description", "site-canonical", "site-og-url"] {
+        assert_eq!(
+            document.matches(&format!("id=\"{id}\"")).count(),
+            1,
+            "static metadata id must be unique: {id}"
+        );
+    }
 }
 
 #[test]
@@ -73,10 +88,11 @@ fn crawl_control_files_contain_only_the_public_production_routes() {
     assert!(robots.contains("User-agent: *"));
     assert!(robots.contains("Allow: /"));
     assert!(robots.contains("Sitemap: https://haydenfarrell.dev/sitemap.xml"));
-    for path in ["/", "/projects", "/cv", "/legal-notice"] {
+    for path in ["/", "/projects", "/cv", "/legal", "/privacy"] {
         assert!(sitemap.contains(&canonical_url_for_path(path)));
     }
-    assert_eq!(sitemap.matches("<loc>").count(), 4);
+    assert_eq!(sitemap.matches("<loc>").count(), 5);
+    assert!(!sitemap.contains("/legal-notice"));
     assert!(!sitemap.contains("not-found"));
 }
 

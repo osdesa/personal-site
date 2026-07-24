@@ -19,3 +19,5 @@ pub mod pages;
 pub mod project_sync;
 pub mod projects;
 pub mod routes;
+#[cfg(not(target_arch = "wasm32"))]
+mod url_policy;

@@ -9,8 +9,8 @@ is a secondary hostname and must permanently redirect to the apex domain while
 preserving paths and query strings.
 
 Pages deploys each merge to `main`. This delivery signal does not replace the
-required GitHub Actions `CI` checks: Rust quality, production bundle,
-accessibility and main-branch Lighthouse checks remain the correctness gate.
+required GitHub Actions `CI` checks: Rust quality, dependency audits, production
+bundle, accessibility and Lighthouse checks remain the correctness gate.
 The scheduled CV and project workflows publish only through their trusted,
 CI-gated automation PRs; see [`automation.md`](automation.md).
 
@@ -41,7 +41,9 @@ After a deployment, directly open and refresh:
 - `https://haydenfarrell.dev/`
 - `https://haydenfarrell.dev/projects`
 - `https://haydenfarrell.dev/cv`
-- `https://haydenfarrell.dev/legal-notice`
+- `https://haydenfarrell.dev/legal`
+- `https://haydenfarrell.dev/privacy`
+- `https://haydenfarrell.dev/legal-notice` (permanent redirect to `/legal`)
 - `https://haydenfarrell.dev/cv/Hayden-Farrell-CV.pdf`
 - `https://haydenfarrell.dev/robots.txt`
 - `https://haydenfarrell.dev/sitemap.xml`
@@ -52,6 +54,13 @@ Also test an unknown route. It should reach the Leptos Not Found view rather
 than a host 404. Do not add a top-level `404.html` or broad catch-all redirect
 unless a direct-route production test proves Pages needs it; both can interfere
 with its normal SPA and asset handling.
+
+Inspect response headers for HTML and fingerprinted `.css`, `.js` and `.wasm`
+assets. Pages must apply the version-controlled `public/_headers` policy:
+Content Security Policy, `Permissions-Policy`, `Referrer-Policy`,
+`X-Content-Type-Options`, `X-Frame-Options`, immutable one-year asset caching,
+and `X-Robots-Tag: noindex, nofollow` on Pages preview hostnames. Production
+HTML remains indexable. Cloudflare provides compression and validators.
 
 Inspect the initial HTML with JavaScript disabled: it must contain generic
 site-wide canonical/Open Graph/Twitter metadata using the canonical origin.

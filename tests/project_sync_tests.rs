@@ -201,6 +201,33 @@ show_repository = false
 }
 
 #[test]
+fn imported_project_links_require_complete_credential_free_https_urls() {
+    for invalid in [
+        "https://",
+        "https://user:password@example.com/demo",
+        "javascript:alert(1)",
+    ] {
+        let source = format!("demo_url = {invalid:?}");
+        assert!(matches!(
+            parse_portfolio_metadata(&source),
+            Err(ProjectSyncError::Validation(message))
+                if message.contains("absolute HTTPS URL without credentials")
+        ));
+    }
+
+    let mut invalid_repository = repository("osdesa/example", "2026-01-01");
+    invalid_repository.html_url = "https://".to_owned();
+    assert!(matches!(
+        normalize_projects(
+            vec![(invalid_repository, PortfolioMetadata::default())],
+            4
+        ),
+        Err(ProjectSyncError::Validation(message))
+            if message.contains("repository URL")
+    ));
+}
+
+#[test]
 fn image_metadata_is_rejected_in_favour_of_repository_thumbnails() {
     let error = parse_portfolio_metadata(r#"image = "/images/project-default.svg""#).unwrap_err();
 

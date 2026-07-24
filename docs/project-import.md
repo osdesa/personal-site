@@ -1,8 +1,8 @@
 # GitHub project synchronization
 
-The Projects page and the homepage's selected-projects section both consume
-`src/generated_projects.rs`. That file is generated at build-maintenance time;
-the browser never calls GitHub and never receives an access token.
+The Projects page consumes `src/generated_projects.rs`. That file is generated
+at build-maintenance time; the browser never calls GitHub and never receives an
+access token.
 
 The daily `sync-projects.yml` workflow runs at 05:41 UTC and can be dispatched
 manually. It uses `PORTFOLIO_GITHUB_TOKEN` only for source reads and

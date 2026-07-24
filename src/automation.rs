@@ -36,15 +36,6 @@ impl AutomationKind {
             Self::Projects => "<!-- personal-site-sync:projects -->",
         }
     }
-
-    /// The stable title used when creating or updating the one pull request.
-    #[must_use]
-    pub const fn pull_request_title(self) -> &'static str {
-        match self {
-            Self::Cv => "chore(cv): synchronize source release",
-            Self::Projects => "chore(projects): synchronize portfolio data",
-        }
-    }
 }
 
 /// Pull-request facts collected from GitHub before enabling native auto-merge.
