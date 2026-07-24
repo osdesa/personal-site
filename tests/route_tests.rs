@@ -57,3 +57,11 @@ fn removed_sections_are_not_public_routes() {
     assert!(title_for_path("/about").starts_with("Page not found"));
     assert!(title_for_path("/contact").starts_with("Page not found"));
 }
+
+#[test]
+fn not_found_decoration_has_a_bounded_non_obstructive_scale() {
+    let css = include_str!("../styles/input.css");
+
+    assert!(css.contains(".not-found__code"));
+    assert!(css.contains("font-size: clamp(8rem, 24vw, 16rem)"));
+}

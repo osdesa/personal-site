@@ -516,6 +516,7 @@ h3 {
 
 .project-card {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -534,7 +535,7 @@ h3 {
   position: relative;
   display: grid;
   aspect-ratio: 608 / 272;
-  min-height: 17rem;
+  min-height: 0;
   overflow: hidden;
   place-items: center;
   border-bottom: 1px solid var(--border);
@@ -607,14 +608,15 @@ h3 {
   color: var(--status-completed);
 }
 
-.project-card h3 {
+.project-card h2 {
   margin-bottom: 0.9rem;
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-size: clamp(1.25rem, 2.1vw, 1.75rem);
 }
 
 .project-card__body > p {
   margin-bottom: 1.5rem;
   color: var(--text-secondary);
+  font-size: 0.92rem;
 }
 
 .project-card__highlights {
@@ -1017,7 +1019,7 @@ h3 {
   inset: 50% auto auto 50%;
   color: var(--text-ghost);
   font-family: var(--font-mono);
-  font-size: clamp(15rem, 45vw, 42rem);
+  font-size: clamp(8rem, 24vw, 16rem);
   font-weight: 900;
   letter-spacing: -0.12em;
   line-height: 0.7;
