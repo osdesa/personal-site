@@ -55,7 +55,18 @@ pub const CV: RouteInfo = RouteInfo {
     title: "CV | Hayden Farrell",
     description: "Hayden Farrell's generated curriculum vitae: experience, education, projects and technical skills.",
 };
+pub const LEGAL_NOTICE: RouteInfo = RouteInfo {
+    path: "/legal-notice",
+    label: "Legal notice",
+    title: "Legal notice | Hayden Farrell",
+    description: "Legal, privacy and website-use information for Hayden Farrell's portfolio.",
+};
+
+/// Routes shown in the primary site navigation.
 pub const NAVIGATION_ROUTES: &[RouteInfo] = &[HOME, PROJECTS, CV];
+
+/// Every indexable public route, including footer-only information pages.
+pub const PUBLIC_ROUTES: &[RouteInfo] = &[HOME, PROJECTS, CV, LEGAL_NOTICE];
 
 pub const NOT_FOUND: RouteInfo = RouteInfo {
     path: "/not-found",
@@ -65,7 +76,7 @@ pub const NOT_FOUND: RouteInfo = RouteInfo {
 };
 
 pub fn metadata_for_path(path: &str) -> RouteInfo {
-    NAVIGATION_ROUTES
+    PUBLIC_ROUTES
         .iter()
         .find(|route| route.path == path)
         .copied()

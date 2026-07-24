@@ -516,6 +516,7 @@ h3 {
 
 .project-card {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -534,7 +535,7 @@ h3 {
   position: relative;
   display: grid;
   aspect-ratio: 608 / 272;
-  min-height: 17rem;
+  min-height: 0;
   overflow: hidden;
   place-items: center;
   border-bottom: 1px solid var(--border);
@@ -607,14 +608,15 @@ h3 {
   color: var(--status-completed);
 }
 
-.project-card h3 {
+.project-card h2 {
   margin-bottom: 0.9rem;
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-size: clamp(1.25rem, 2.1vw, 1.75rem);
 }
 
 .project-card__body > p {
   margin-bottom: 1.5rem;
   color: var(--text-secondary);
+  font-size: 0.92rem;
 }
 
 .project-card__highlights {
@@ -1017,7 +1019,7 @@ h3 {
   inset: 50% auto auto 50%;
   color: var(--text-ghost);
   font-family: var(--font-mono);
-  font-size: clamp(15rem, 45vw, 42rem);
+  font-size: clamp(8rem, 24vw, 16rem);
   font-weight: 900;
   letter-spacing: -0.12em;
   line-height: 0.7;
@@ -1040,6 +1042,46 @@ h3 {
   max-width: 34rem;
   margin: 0 auto 2rem;
   color: var(--text-secondary);
+}
+
+/* Legal notice */
+.legal-notice__content {
+  max-width: 62rem;
+  border-top: 1px solid var(--border);
+}
+
+.legal-notice__section {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.55fr) minmax(0, 1.45fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+  border-bottom: 1px solid var(--border);
+}
+
+.legal-notice__section h2 {
+  margin-bottom: 0;
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+}
+
+.legal-notice__section p {
+  max-width: 43rem;
+  color: var(--text-secondary);
+}
+
+.legal-notice__section p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-notice__section a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.2em;
+}
+
+.legal-notice__section a:hover {
+  color: var(--accent-strong);
+  text-decoration-color: currentcolor;
 }
 
 /* Footer */
@@ -1109,17 +1151,16 @@ h3 {
   margin-bottom: 0;
 }
 
-.site-footer__status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.site-footer__base a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.2em;
 }
 
-.site-footer__status span {
-  width: 0.38rem;
-  height: 0.38rem;
-  border-radius: 50%;
-  background: #42c98d;
+.site-footer__base a:hover {
+  color: var(--accent);
+  text-decoration-color: currentcolor;
 }
 
 @media (max-width: 64rem) {
@@ -1191,6 +1232,11 @@ h3 {
   .cv-layout {
     grid-template-columns: 1fr;
     gap: 3rem;
+  }
+
+  .legal-notice__section {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
 
   .cv-heading {

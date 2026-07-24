@@ -22,6 +22,13 @@ const routes = [
       "Hayden Farrell's generated curriculum vitae: experience, education, projects and technical skills.",
   },
   {
+    name: "legal notice",
+    path: "/legal-notice",
+    title: "Legal notice | Hayden Farrell",
+    description:
+      "Legal, privacy and website-use information for Hayden Farrell's portfolio.",
+  },
+  {
     name: "not found",
     path: "/a-route-that-does-not-exist",
     title: "Page not found | Hayden Farrell",
@@ -108,6 +115,26 @@ test("skip link moves keyboard focus into main content", async ({ page }) => {
   await page.keyboard.press("Enter");
 
   await expect(page.locator("main")).toBeFocused();
+});
+
+test("project images fit within narrow mobile cards", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/projects");
+
+  const imageBounds = await page.locator(".project-card__image").evaluateAll((images) =>
+    images.map((image) => {
+      const { left, right, width, height } = image.getBoundingClientRect();
+      return { left, right, width, height };
+    }),
+  );
+
+  expect(imageBounds).not.toEqual([]);
+  for (const image of imageBounds) {
+    expect(image.left).toBeGreaterThanOrEqual(0);
+    expect(image.right).toBeLessThanOrEqual(320);
+    expect(image.width).toBeGreaterThan(0);
+    expect(image.height).toBeGreaterThan(0);
+  }
 });
 
 test.describe("mobile navigation", () => {

@@ -83,3 +83,15 @@ fn project_and_mobile_navigation_ordinals_are_not_rendered() {
     assert!(!card_source.contains("project-card__number"));
     assert!(!navigation_source.contains("format!(\"0{}\""));
 }
+
+#[test]
+fn project_cards_keep_metadata_at_the_top_links_at_the_bottom_and_media_responsive() {
+    let css = include_str!("../styles/input.css");
+
+    assert!(css.contains("grid-template-rows: auto minmax(0, 1fr)"));
+    assert!(css.contains(".project-card__links"));
+    assert!(css.contains("margin-top: auto"));
+    assert!(css.contains(".project-card h2"));
+    assert!(css.contains("aspect-ratio: 608 / 272"));
+    assert!(css.contains("min-height: 0"));
+}
