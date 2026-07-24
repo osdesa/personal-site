@@ -41,6 +41,7 @@ struct MockSource {
     accessible: Result<Vec<RemoteRepository>, String>,
     repositories: HashMap<String, RemoteRepository>,
     metadata: HashMap<String, Result<Option<String>, String>>,
+    thumbnails: HashMap<String, Result<Option<Vec<u8>>, String>>,
 }
 
 impl ProjectSource for MockSource {
@@ -68,6 +69,21 @@ impl ProjectSource for MockSource {
             .unwrap_or(Ok(None))
             .map_err(ProjectSyncError::Remote)
     }
+
+    fn project_thumbnail(&self, full_name: &str) -> Result<Option<Vec<u8>>, ProjectSyncError> {
+        self.thumbnails
+            .get(full_name)
+            .cloned()
+            .unwrap_or(Ok(None))
+            .map_err(ProjectSyncError::Remote)
+    }
+}
+
+fn png(width: u32, height: u32) -> Vec<u8> {
+    let mut bytes = b"\x89PNG\r\n\x1a\n\0\0\0\rIHDR".to_vec();
+    bytes.extend(width.to_be_bytes());
+    bytes.extend(height.to_be_bytes());
+    bytes
 }
 
 #[test]
@@ -81,6 +97,7 @@ fn named_list_is_the_primary_selection_source() {
             repository("osdesa/topic-selected", "2026-01-01"),
         )]),
         metadata: HashMap::new(),
+        thumbnails: HashMap::new(),
     };
     let root = tempfile::tempdir().unwrap();
     let outcome = synchronize(&source, &ProjectDataStore::new(root.path()), &config()).unwrap();
@@ -103,6 +120,7 @@ fn topic_then_allowlist_are_ordered_fallbacks() {
         accessible: Ok(vec![repository("osdesa/topic-selected", "2026-01-01")]),
         repositories: HashMap::new(),
         metadata: HashMap::new(),
+        thumbnails: HashMap::new(),
     };
     let root = tempfile::tempdir().unwrap();
     let outcome = synchronize(
@@ -129,6 +147,7 @@ fn topic_then_allowlist_are_ordered_fallbacks() {
         accessible: Ok(vec![repository("someone/irrelevant", "2026-01-01")]),
         repositories: fallback_repositories,
         metadata: HashMap::new(),
+        thumbnails: HashMap::new(),
     };
     let root = tempfile::tempdir().unwrap();
     let outcome = synchronize(
@@ -156,7 +175,6 @@ date = "2026-05-04"
 status = "Active"
 technologies = ["Rust", "WebAssembly"]
 highlights = ["Deterministic output"]
-image = "/images/project-default.svg"
 demo_url = "https://example.com/demo"
 show_repository = false
 "#,
@@ -183,16 +201,12 @@ show_repository = false
 }
 
 #[test]
-fn remote_project_images_fall_back_to_controlled_artwork() {
-    let metadata = parse_portfolio_metadata(r#"image = "https://example.com/project.webp""#)
-        .expect("optional remote metadata must not break synchronization");
-    let projects = normalize_projects(
-        vec![(repository("osdesa/example-name", "2024-01-02"), metadata)],
-        4,
-    )
-    .unwrap();
+fn image_metadata_is_rejected_in_favour_of_repository_thumbnails() {
+    let error = parse_portfolio_metadata(r#"image = "/images/project-default.svg""#).unwrap_err();
 
-    assert_eq!(projects[0].image_url, "/images/project-default.svg");
+    assert!(
+        matches!(error, ProjectSyncError::Validation(message) if message.contains("unknown field"))
+    );
 }
 
 #[test]
@@ -297,6 +311,65 @@ fn failed_synchronization_preserves_previous_generated_data() {
         metadata: HashMap::from([(
             "osdesa/broken".to_owned(),
             Ok(Some("date = 'not-a-date'".to_owned())),
+        )]),
+        thumbnails: HashMap::new(),
+    };
+
+    assert!(synchronize(&source, &ProjectDataStore::new(root.path()), &config()).is_err());
+    assert_eq!(
+        fs::read_to_string(target).unwrap(),
+        "previous valid project data\n"
+    );
+}
+
+#[test]
+fn repository_thumbnail_is_copied_into_the_static_bundle() {
+    let source = MockSource {
+        named_list: Ok(Some(vec!["osdesa/thumbnail-project".to_owned()])),
+        accessible: Ok(Vec::new()),
+        repositories: HashMap::from([(
+            "osdesa/thumbnail-project".to_owned(),
+            repository("osdesa/thumbnail-project", "2026-01-01"),
+        )]),
+        metadata: HashMap::new(),
+        thumbnails: HashMap::from([(
+            "osdesa/thumbnail-project".to_owned(),
+            Ok(Some(png(608, 272))),
+        )]),
+    };
+    let root = tempfile::tempdir().unwrap();
+
+    synchronize(&source, &ProjectDataStore::new(root.path()), &config()).unwrap();
+
+    let generated = fs::read_to_string(root.path().join(GENERATED_PROJECTS_PATH)).unwrap();
+    assert!(generated.contains("/images/projects/osdesa-thumbnail-project.png"));
+    assert_eq!(
+        fs::read(
+            root.path()
+                .join("public/images/projects/osdesa-thumbnail-project.png")
+        )
+        .unwrap(),
+        png(608, 272)
+    );
+}
+
+#[test]
+fn invalid_thumbnail_preserves_existing_generated_data() {
+    let root = tempfile::tempdir().unwrap();
+    let target = root.path().join(GENERATED_PROJECTS_PATH);
+    fs::create_dir_all(target.parent().unwrap()).unwrap();
+    fs::write(&target, b"previous valid project data\n").unwrap();
+    let source = MockSource {
+        named_list: Ok(Some(vec!["osdesa/broken-thumbnail".to_owned()])),
+        accessible: Ok(Vec::new()),
+        repositories: HashMap::from([(
+            "osdesa/broken-thumbnail".to_owned(),
+            repository("osdesa/broken-thumbnail", "2026-01-01"),
+        )]),
+        metadata: HashMap::new(),
+        thumbnails: HashMap::from([(
+            "osdesa/broken-thumbnail".to_owned(),
+            Ok(Some(b"not a PNG".to_vec())),
         )]),
     };
 

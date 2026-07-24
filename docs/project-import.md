@@ -49,7 +49,6 @@ highlights = [
   "A concrete result or engineering decision.",
   "Another concise, publicly shareable point.",
 ]
-image = "/images/project-default.svg"
 demo_url = "https://example.com/demo"
 show_repository = true
 include_archived = false
@@ -63,6 +62,22 @@ A private project with no link renders a “Private repository” indicator. Tex
 technology names, images, highlights and links from private repositories become
 public when generated, so metadata must contain only publishable information.
 
+### Project thumbnails
+
+Portfolio metadata does not select card artwork. To supply a project image,
+add a PNG named `thumbnail.png` at `.github/thumbnail.png` in that project's
+default branch. During synchronization, the thumbnail is downloaded with the
+same authenticated GitHub access as metadata, checked for a valid PNG header
+and non-zero dimensions, and copied to `public/images/projects/` under a stable
+generated filename. The browser therefore loads a local static asset rather
+than GitHub at runtime, including for private repositories that the owner
+chooses to publish.
+
+If the file is absent, the card uses `/images/project-default.svg`. A present
+but malformed thumbnail stops synchronization before the existing generated
+catalogue or image assets are replaced. Other file names, locations, and image
+formats are intentionally ignored: use exactly `.github/thumbnail.png`.
+
 ## Normalization rules
 
 - title: metadata title, then the repository name with separators formatted
@@ -70,16 +85,16 @@ public when generated, so metadata must contain only publishable information.
 - technologies: metadata list, otherwise topics followed by primary language
 - date: metadata `date`, then GitHub creation date
 - demo: metadata `demo_url`, then repository homepage
-- image: controlled local metadata `image`, then `/images/project-default.svg`
+- image: synchronized `.github/thumbnail.png`, then `/images/project-default.svg`
 - repository link: GitHub URL for public repositories, hidden for private
   repositories, with `show_repository` as an explicit override
 - visibility: GitHub's authenticated public/private value
 
 Blank optional values are omitted. Technology and highlight lists are trimmed
 and deduplicated case-insensitively. HTTPS is required for remote repository
-and demo URLs. Only image values that reference a controlled root-relative
-`/images/` asset are emitted; other optional image values fall back to the
-default artwork so generated pages do not depend on remote artwork.
+and demo URLs. Project thumbnail bytes are emitted only from the exact
+repository-local PNG convention above, so generated pages do not depend on
+remote artwork.
 
 Archived repositories and forks are excluded unless their own metadata opts
 them in. Projects are sorted newest-first by effective portfolio date, then

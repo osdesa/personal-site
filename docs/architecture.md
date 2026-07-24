@@ -59,9 +59,10 @@ it, while browser-specific behaviour is isolated from those data structures.
 
 The parallel native project path resolves the authenticated `portfolio` user
 list through GraphQL, with topic and allowlist fallbacks, retrieves optional
-`.github/portfolio.toml`, normalizes and filters complete candidates, sorts and
-caps them, and atomically generates `src/generated_projects.rs`. No partial
-remote result reaches the checked-in artifact.
+`.github/portfolio.toml` metadata and `.github/thumbnail.png` artwork,
+normalizes and filters complete candidates, sorts and caps them, and atomically
+generates `src/generated_projects.rs` with matching local thumbnail assets. No
+partial remote result reaches the checked-in artifact.
 
 Scheduled GitHub Actions run the two native tools from trusted `main` code.
 They update a fixed automation branch/PR only when bytes change, verify the

@@ -39,6 +39,8 @@
   --accent: #c6cdd4;
   --accent-strong: #eef0f2;
   --accent-soft: #292d31;
+  --status-active: #f4d35e;
+  --status-completed: #6fd19a;
   --border: #2c3035;
   --border-strong: #484e55;
   --focus: #dce2e7;
@@ -539,16 +541,6 @@ h3 {
   background: var(--surface-subtle);
 }
 
-.project-card__number {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 2;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-}
-
 .project-card__grid {
   position: absolute;
   inset: 0;
@@ -605,6 +597,14 @@ h3 {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.project-card__status--active {
+  color: var(--status-active);
+}
+
+.project-card__status--completed {
+  color: var(--status-completed);
 }
 
 .project-card h3 {
@@ -852,8 +852,12 @@ h3 {
 
 .project-index-header__title {
   margin-bottom: 0;
-  font: inherit;
-  letter-spacing: inherit;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: clamp(3.5rem, 10vw, 8rem);
+  font-weight: 650;
+  letter-spacing: -0.075em;
+  line-height: 0.84;
   text-transform: inherit;
 }
 
@@ -1168,18 +1172,11 @@ h3 {
   .mobile-nav__link {
     display: flex;
     align-items: baseline;
-    gap: 1rem;
     padding: 0.65rem 0;
     border-bottom: 1px solid var(--border);
     font-size: 1.25rem;
     font-weight: 650;
     letter-spacing: -0.03em;
-  }
-
-  .mobile-nav__link span {
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
   }
 
   .mobile-nav__link[aria-current="page"] {
