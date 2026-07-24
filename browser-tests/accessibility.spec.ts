@@ -7,12 +7,14 @@ const routes = [
     path: "/",
     title: "Hayden Farrell | Software Engineer",
     description: "Hayden Farrell - software engineer and computer science student.",
+    indexable: true,
   },
   {
     name: "projects",
     path: "/projects",
     title: "Projects | Hayden Farrell",
     description: "Selected software engineering projects and technical case studies.",
+    indexable: true,
   },
   {
     name: "CV",
@@ -20,13 +22,23 @@ const routes = [
     title: "CV | Hayden Farrell",
     description:
       "Hayden Farrell's generated curriculum vitae: experience, education, projects and technical skills.",
+    indexable: true,
   },
   {
     name: "legal notice",
-    path: "/legal-notice",
+    path: "/legal",
     title: "Legal notice | Hayden Farrell",
     description:
-      "Legal, privacy and website-use information for Hayden Farrell's portfolio.",
+      "Terms, ownership and website-use information for Hayden Farrell's portfolio.",
+    indexable: true,
+  },
+  {
+    name: "privacy notice",
+    path: "/privacy",
+    title: "Privacy notice | Hayden Farrell",
+    description:
+      "Privacy and data-protection information for Hayden Farrell's portfolio website.",
+    indexable: true,
   },
   {
     name: "not found",
@@ -34,6 +46,7 @@ const routes = [
     title: "Page not found | Hayden Farrell",
     description:
       "The requested page could not be found. Return to Hayden Farrell's software engineering portfolio.",
+    indexable: false,
   },
 ] as const;
 
@@ -54,8 +67,62 @@ for (const route of routes) {
       "content",
       route.description,
     );
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
+    await expect(page.locator('meta[property="og:url"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="description"]')).toHaveCount(1);
+    if (route.indexable) {
+      await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+    } else {
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+        "content",
+        "noindex, nofollow",
+      );
+    }
   });
 }
+
+test("legacy legal notice links redirect to the canonical route", async ({ page }) => {
+  await page.goto("/legal-notice");
+
+  await expect(page).toHaveURL("/legal");
+  await expect(page.getByRole("heading", { name: "Legal notice" })).toBeVisible();
+});
+
+test("home heading remains separated from its supporting content", async ({ page }) => {
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 768, height: 1024 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+
+    const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+    const role = await page.locator(".home-page__role").boundingBox();
+
+    expect(heading).not.toBeNull();
+    expect(role).not.toBeNull();
+    expect(role!.y - (heading!.y + heading!.height)).toBeGreaterThanOrEqual(16);
+  }
+});
+
+test("404 decoration stays above and clear of supporting content", async ({ page }) => {
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/a-route-that-does-not-exist");
+
+    const code = await page.locator(".not-found__code").boundingBox();
+    const eyebrow = await page.getByText("Route not found", { exact: true }).boundingBox();
+
+    expect(code).not.toBeNull();
+    expect(eyebrow).not.toBeNull();
+    expect(code!.y + code!.height).toBeLessThanOrEqual(eyebrow!.y);
+    expect(code!.y).toBeLessThan(viewport.height * 0.4);
+  }
+});
 
 test("written project content remains available when a project image fails", async ({ page }) => {
   await page.route("**/images/**", (route) => route.abort("failed"));

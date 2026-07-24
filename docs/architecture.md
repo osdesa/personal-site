@@ -82,7 +82,7 @@ Pages then deploys the resulting `main` commit.
 3. `App` provides metadata context, starts `Router`, and wraps routes in
    `SiteShell`.
 4. Pages consume editorial values from `content::portfolio()`, CV identity from
-   `generated_cv::CV`, and the shared static project slice from
+   `generated_cv::CV`, and, on the Projects route, the static project slice from
    `generated_projects::PROJECTS`.
 
 There are no runtime data requests, environment variables, credentials or
@@ -102,8 +102,8 @@ project data.
 ### `src/projects.rs`, `src/generated_projects.rs` and `src/project_sync/`
 
 `projects.rs` defines the borrowed runtime project model.
-`generated_projects.rs` is the automation-owned catalogue consumed by the home
-and Projects pages. The native-only `project_sync` subsystem separates strict
+`generated_projects.rs` is the automation-owned catalogue consumed by the
+Projects page. The native-only `project_sync` subsystem separates strict
 configuration, GitHub transport, metadata parsing/normalization, deterministic
 generation and atomic no-op-aware storage. Its `ProjectSource` boundary keeps
 normal tests fixture-driven. Full operational rules live in
@@ -123,9 +123,11 @@ browser metadata and tests share the same route metadata; Leptos route
 declarations remain explicit in `app.rs` so each view is visible at the
 application boundary. It also owns the typed `PRODUCTION_ORIGIN`, from which
 route canonical URLs and controlled sharing artwork URLs are derived. The
-static `index.html` is intentionally only a site-wide crawler/share fallback;
-route-specific metadata appears after Wasm mounting and does not promise
-route-specific social previews to non-rendering crawlers.
+static `index.html` is intentionally only a site-wide crawler/share fallback.
+On mounting, `RouteMetadata` replaces the static canonical, description and
+Open Graph URL nodes with exactly one route-specific set, and marks unknown
+routes `noindex`. This does not promise route-specific social previews to
+non-rendering crawlers.
 
 ### `src/components/`
 
@@ -212,14 +214,20 @@ Stage 3 contract are documented in `docs/cv-import.md`.
 
 ## Routing and static hosting
 
-Leptos Router handles `/`, `/projects`, `/cv` and the footer-linked
-`/legal-notice`, with a fallback view for unknown paths. About and Contact are
+Leptos Router handles `/`, `/projects`, `/cv` and the footer-linked `/legal` and
+`/privacy` notices, with a fallback view for unknown paths. The legacy
+`/legal-notice` URL redirects permanently to `/legal`. About and Contact are
 intentionally not separate routes.
 Cloudflare Pages builds the repository root from `main` and serves `dist/` at
 `https://haydenfarrell.dev`. Its normal SPA fallback must reach `index.html`
 for non-file paths while serving assets unchanged. Do not add a top-level
 `404.html` or broad catch-all redirect unless production direct-route testing
 demonstrates that Pages requires one.
+
+`public/_headers` is copied into every production bundle. It defines the
+Content Security Policy, browser capability restrictions, framing and MIME
+protections, long-lived immutable caching for fingerprinted build assets, and
+preview-deployment `noindex` policy. Cloudflare owns compression and validators.
 
 ## Testing strategy
 
@@ -247,15 +255,16 @@ than browser markup snapshots:
 
 CI additionally compiles every target with warnings denied and builds the actual
 Wasm application. Playwright serves the built static SPA, scans the home,
-projects, CV, legal-notice and not-found routes with axe, and checks the mobile menu's
-keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
+projects, CV, legal, privacy and not-found routes with axe, and checks the
+mobile menu's keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
 workflow repeats the native quality suite before opening an artifact update pull
 request.
 
 `scripts/validate-static-output.mjs` checks the release directory after Trunk
 builds it. It verifies crawler files, controlled static assets, the CV PDF,
-CSS/JavaScript/Wasm output, absolute metadata, the canonical route set, and
-the absence of localhost, Pages-preview, and synchronization-token-name leaks.
+CSS/JavaScript/Wasm output, security and caching headers, absolute metadata, the
+canonical route set, and the absence of localhost, Pages-preview, and
+synchronization-token-name leaks.
 
 The repository-owned Lighthouse runner separately serves `dist/` as a local SPA
 after the release build, audits the three core portfolio routes three times, and
@@ -268,8 +277,8 @@ enters the browser runtime.
 The CI workflow separates native Rust validation from the WebAssembly/CSS build
 because the targets use different compilation outputs and neither needs to wait
 for the other. The web-build job produces `dist/` once and uploads it as a
-short-lived workflow artifact. Browser accessibility and the `main`-only
-Lighthouse budget job each download that exact output and serve it through
+short-lived workflow artifact. Browser accessibility and Lighthouse budget
+jobs each download that exact output and serve it through
 `scripts/static-spa-server.mjs`; they do not run Trunk or Tailwind again.
 
 Cargo caches may retain native and Wasm target directories because Cargo keeps

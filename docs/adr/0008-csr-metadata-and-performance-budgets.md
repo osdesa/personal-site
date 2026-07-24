@@ -1,5 +1,8 @@
 # ADR 0008: Truthful CSR metadata and local Lighthouse budgets
 
+Status: amended by ADR 0010, which selected the canonical host and introduced
+the absolute metadata and crawler files deferred below.
+
 ## Context
 
 The site is a static Trunk/Leptos client-side-rendered application without a

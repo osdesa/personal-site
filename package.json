@@ -7,6 +7,7 @@
     "css:watch": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --watch",
     "test:browser": "npm run css:build && trunk build --release && npm run test:browser:dist",
     "test:browser:dist": "playwright test",
+    "test:scripts": "node --test ./scripts/*.test.mjs",
     "test:static": "node ./scripts/validate-static-output.mjs",
     "test:performance": "node ./scripts/performance-audit.mjs"
   },
@@ -14,7 +15,7 @@
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/cli": "4.3.3",
-    "tailwindcss": "4.3.3",
-    "lighthouse": "13.3.0"
+    "lighthouse": "13.4.1",
+    "tailwindcss": "4.3.3"
   }
 }

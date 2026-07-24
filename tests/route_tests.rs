@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use personal_site::routes::{NAVIGATION_ROUTES, PUBLIC_ROUTES, metadata_for_path, title_for_path};
+use personal_site::routes::{NAVIGATION_ROUTES, PUBLIC_ROUTES, metadata_for_path};
 
 #[test]
 fn navigation_routes_are_unique_and_absolute() {
@@ -22,9 +22,12 @@ fn navigation_routes_are_unique_and_absolute() {
 #[test]
 fn every_public_route_has_a_specific_title() {
     for route in PUBLIC_ROUTES {
-        assert!(title_for_path(route.path).contains("Hayden Farrell"));
+        assert!(route.title.contains("Hayden Farrell"));
+        assert_eq!(route.robots, None);
     }
-    assert!(title_for_path("/missing").starts_with("Page not found"));
+    let missing = metadata_for_path("/missing");
+    assert!(missing.title.starts_with("Page not found"));
+    assert_eq!(missing.robots, Some("noindex, nofollow"));
 }
 
 #[test]
@@ -54,8 +57,16 @@ fn removed_sections_are_not_public_routes() {
             .iter()
             .all(|route| !matches!(route.path, "/about" | "/contact"))
     );
-    assert!(title_for_path("/about").starts_with("Page not found"));
-    assert!(title_for_path("/contact").starts_with("Page not found"));
+    assert!(
+        metadata_for_path("/about")
+            .title
+            .starts_with("Page not found")
+    );
+    assert!(
+        metadata_for_path("/contact")
+            .title
+            .starts_with("Page not found")
+    );
 }
 
 #[test]
@@ -63,5 +74,14 @@ fn not_found_decoration_has_a_bounded_non_obstructive_scale() {
     let css = include_str!("../styles/input.css");
 
     assert!(css.contains(".not-found__code"));
-    assert!(css.contains("font-size: clamp(8rem, 24vw, 16rem)"));
+    assert!(css.contains("font-size: clamp(6.5rem, 18vw, 12rem)"));
+    assert!(!css.contains("transform: translate(-50%, -50%)"));
+}
+
+#[test]
+fn home_heading_has_responsive_separation_from_supporting_content() {
+    let css = include_str!("../styles/input.css");
+
+    assert!(css.contains("margin-bottom: clamp(1.5rem, 2.5vw, 2.25rem)"));
+    assert!(css.contains("line-height: 0.88"));
 }

@@ -6,6 +6,8 @@ pub struct RouteInfo {
     pub label: &'static str,
     pub title: &'static str,
     pub description: &'static str,
+    /// Optional crawler directive for routes that must not be indexed.
+    pub robots: Option<&'static str>,
 }
 
 /// Typed, canonical HTTPS origin for every production absolute URL.
@@ -42,37 +44,49 @@ pub const HOME: RouteInfo = RouteInfo {
     label: "Home",
     title: "Hayden Farrell | Software Engineer",
     description: "Hayden Farrell - software engineer and computer science student.",
+    robots: None,
 };
 pub const PROJECTS: RouteInfo = RouteInfo {
     path: "/projects",
     label: "Projects",
     title: "Projects | Hayden Farrell",
     description: "Selected software engineering projects and technical case studies.",
+    robots: None,
 };
 pub const CV: RouteInfo = RouteInfo {
     path: "/cv",
     label: "CV",
     title: "CV | Hayden Farrell",
     description: "Hayden Farrell's generated curriculum vitae: experience, education, projects and technical skills.",
+    robots: None,
 };
 pub const LEGAL_NOTICE: RouteInfo = RouteInfo {
-    path: "/legal-notice",
+    path: "/legal",
     label: "Legal notice",
     title: "Legal notice | Hayden Farrell",
-    description: "Legal, privacy and website-use information for Hayden Farrell's portfolio.",
+    description: "Terms, ownership and website-use information for Hayden Farrell's portfolio.",
+    robots: None,
+};
+pub const PRIVACY_NOTICE: RouteInfo = RouteInfo {
+    path: "/privacy",
+    label: "Privacy notice",
+    title: "Privacy notice | Hayden Farrell",
+    description: "Privacy and data-protection information for Hayden Farrell's portfolio website.",
+    robots: None,
 };
 
 /// Routes shown in the primary site navigation.
 pub const NAVIGATION_ROUTES: &[RouteInfo] = &[HOME, PROJECTS, CV];
 
 /// Every indexable public route, including footer-only information pages.
-pub const PUBLIC_ROUTES: &[RouteInfo] = &[HOME, PROJECTS, CV, LEGAL_NOTICE];
+pub const PUBLIC_ROUTES: &[RouteInfo] = &[HOME, PROJECTS, CV, LEGAL_NOTICE, PRIVACY_NOTICE];
 
 pub const NOT_FOUND: RouteInfo = RouteInfo {
     path: "/not-found",
     label: "Not found",
     title: "Page not found | Hayden Farrell",
     description: "The requested page could not be found. Return to Hayden Farrell's software engineering portfolio.",
+    robots: Some("noindex, nofollow"),
 };
 
 pub fn metadata_for_path(path: &str) -> RouteInfo {
@@ -81,10 +95,6 @@ pub fn metadata_for_path(path: &str) -> RouteInfo {
         .find(|route| route.path == path)
         .copied()
         .unwrap_or(NOT_FOUND)
-}
-
-pub fn title_for_path(path: &str) -> &'static str {
-    metadata_for_path(path).title
 }
 
 /// Returns the canonical absolute URL for a known public route.

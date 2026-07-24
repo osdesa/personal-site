@@ -9,8 +9,8 @@ validated, versioned upstream release rather than maintained by hand.
 The initial design and automated CV presentation milestones are complete. The
 site includes:
 
-- Home, Projects, CV, Legal notice and accessible not-found routes
-- a focused homepage with generated selected projects and no profile imagery
+- Home, Projects, CV, Legal notice, Privacy notice and accessible not-found routes
+- a focused homepage with no profile imagery
 - responsive desktop, tablet and mobile layouts
 - a permanent dark charcoal-and-grey visual system
 - reusable navigation, project, CV-timeline, safe-rich-text and layout components
@@ -21,7 +21,7 @@ site includes:
   strict LaTeX parsing and generated static Rust data
 - daily authenticated GitHub project synchronization with private-repository
   support, strict optional overrides and deterministic generated Rust data
-- focused Rust tests and a production CI build
+- Rust, script and browser regression suites plus production CI quality gates
 
 Authentication, a database, CMS, blog, analytics, search and a contact-form
 backend are intentionally outside this milestone. Production static hosting is
@@ -43,7 +43,7 @@ for the decision and its consequences.
 
 ## Prerequisites
 
-- the stable Rust toolchain (the dependencies require Rust 1.88 or newer)
+- the stable Rust toolchain selected by `rust-toolchain.toml`
 - Node.js 24 and npm 11, matching CI
 - Trunk 0.21.14
 
@@ -82,7 +82,8 @@ Generate minified CSS and the optimized WebAssembly bundle:
 npm run css:build
 trunk build --release
 npm run test:static
-npm run test:browser
+npm run test:scripts
+npm run test:browser:dist
 npm run test:performance
 ```
 
@@ -100,16 +101,20 @@ The native binary is not the deployable website; Trunk's WebAssembly bundle is.
 Run the same core checks used by CI:
 
 ```text
-cargo fmt --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test --all-targets --all-features
-cargo build --release
+cargo fmt --all -- --check
+cargo clippy --locked --all-targets --all-features -- -D warnings
+cargo test --locked --all-targets --all-features
+cargo audit
+cargo llvm-cov --locked --all-features --workspace --all-targets --summary-only
+cargo build --locked --release --all-features --bins
 cargo build --release --features cv-sync --bin sync-cv
 cargo build --release --features project-sync --bin sync-projects
+npm audit --audit-level=moderate
+npm run test:scripts
 npm run css:build
 trunk build --release
 npm run test:static
-npm run test:browser
+npm run test:browser:dist
 npm run test:performance
 ```
 
@@ -125,7 +130,7 @@ not contain inline `#[cfg(test)]` sections.
 
 ```text
 .
-├── .github/workflows/         # CI and scheduled content synchronization
+├── .github/                   # CI, Dependabot and content synchronization
 ├── docs/                       # Architecture, design system and ADRs
 ├── public/                     # Static files copied into the bundle
 ├── src/
@@ -147,7 +152,7 @@ not contain inline `#[cfg(test)]` sections.
 ├── styles/input.css            # Tokens and component styling source
 ├── tests/                      # All Rust tests, including unit-style tests
 ├── index.html                  # Trunk HTML entry point
-├── package.json                # Local Tailwind build
+├── package.json                # CSS, browser and quality tooling
 └── Trunk.toml                  # Development and bundle configuration
 ```
 
@@ -166,8 +171,8 @@ the CV page because `/projects` is the dedicated project presentation. The
 generated file is automation-owned; do not edit it or copy its values into page
 components. [`src/content.rs`](src/content.rs) contains only non-CV homepage
 copy. [`src/generated_projects.rs`](src/generated_projects.rs) is the single
-source of truth for both project presentation surfaces and must not be edited
-by hand. Route-level framing copy remains in `src/pages/`.
+source of truth for the Projects route and must not be edited by hand.
+Route-level framing copy remains in `src/pages/`.
 
 Extend CV presentation in
 [`src/cv_presentation.rs`](src/cv_presentation.rs) by composing the existing
@@ -234,11 +239,11 @@ presentation contract, and
 
 `.github/workflows/ci.yml` runs the complete required validation for open pull
 requests targeting `main` and every commit pushed to `main`: formatting, Clippy
-with warnings denied, Rust tests, all native release binaries, CSS generation,
-the production Trunk bundle and browser accessibility regression checks.
-Feature-branch pushes without an open pull request do not start CI. The
-Lighthouse budget gate additionally runs on `main`, where it checks the release
-artifact that is eligible for deployment.
+with warnings denied, Rust tests, dependency audits, all native release
+binaries, script tests, CSS generation, the production Trunk bundle, browser
+accessibility checks and Lighthouse budgets. Feature-branch pushes without an
+open pull request do not start CI. Third-party actions are pinned to immutable
+commits, and Dependabot proposes compatible Cargo, npm and action updates.
 
 `.github/workflows/sync-cv.yml` runs daily at 05:17 UTC and on manual dispatch.
 It executes the release synchronizer, runs formatting, Clippy, tests and a
@@ -283,15 +288,13 @@ rollback, domain changes and the static-CSR metadata limitation.
 
 Native Rust quality and the WebAssembly/CSS build run as independent jobs. The
 web-build job uploads the exact `dist/` output as a one-day artifact; browser
-accessibility and the `main`-only Lighthouse budget job download and serve that
-same immutable bundle instead of compiling it again. Cargo build data, npm's
+accessibility and Lighthouse budget jobs download and serve that same immutable
+bundle instead of compiling it again. Cargo build data, npm's
 package cache and the Playwright Chromium download are restored where safe.
 
-This makes the pull-request critical path the slower of the native job and the
-web-build-plus-browser job, instead of serial native checks plus a second Trunk
-build inside browser tests. On `main`, the Lighthouse job runs in parallel with
-browser checks after the shared build. Stale pull-request runs are cancelled,
-while each `main` commit retains an independent full run. See
+The two browser jobs run in parallel after the shared web build. Stale
+pull-request runs are cancelled, while each `main` commit retains an independent
+full run. See
 [`docs/adr/0009-ci-bundle-reuse-and-quality-gates.md`](docs/adr/0009-ci-bundle-reuse-and-quality-gates.md)
 for the reliability and cache boundaries.
 
@@ -301,7 +304,7 @@ for the reliability and cache boundaries.
 - [`docs/cv-import.md`](docs/cv-import.md) specifies the supported LaTeX grammar, parser and Stage 3 presentation contract.
 - [`docs/project-import.md`](docs/project-import.md) documents authenticated project selection, metadata and operation.
 - [`docs/automation.md`](docs/automation.md) documents scheduled generated-content publication and safe auto-merge.
-- [`docs/web-quality-milestone.md`](docs/web-quality-milestone.md) defines the staged accessibility, metadata, performance and deployment-readiness milestone.
+- [`docs/web-quality.md`](docs/web-quality.md) records metadata, security-header and performance operations.
 - [`docs/deployment.md`](docs/deployment.md) records the confirmed Cloudflare Pages configuration and operations runbook.
 - [`docs/design-system.md`](docs/design-system.md) records tokens, responsive rules and component conventions.
 - [`docs/adr/0001-initial-architecture.md`](docs/adr/0001-initial-architecture.md) records the initial architecture decision.
@@ -314,6 +317,7 @@ for the reliability and cache boundaries.
 - [`docs/adr/0008-csr-metadata-and-performance-budgets.md`](docs/adr/0008-csr-metadata-and-performance-budgets.md) records truthful CSR metadata and local quality budgets.
 - [`docs/adr/0009-ci-bundle-reuse-and-quality-gates.md`](docs/adr/0009-ci-bundle-reuse-and-quality-gates.md) records shared release-bundle CI validation.
 - [`docs/adr/0010-cloudflare-pages-production-hosting.md`](docs/adr/0010-cloudflare-pages-production-hosting.md) records the production-hosting decision.
+- [`docs/adr/0011-static-security-and-supply-chain.md`](docs/adr/0011-static-security-and-supply-chain.md) records the static response and dependency-supply-chain policy.
 
 ## Future work
 

@@ -11,3 +11,8 @@ ignore = ["styles/generated.css"]
 addresses = ["127.0.0.1"]
 port = 8080
 open = false
+
+[[hooks]]
+stage = "post_build"
+command = "node"
+command_arguments = ["scripts/finalize-static-output.mjs"]

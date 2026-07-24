@@ -1,21 +1,18 @@
 use leptos::prelude::*;
 
-use crate::components::{ButtonLink, RouteMetadata, remove_static_description_on_mount};
+use crate::components::{ButtonLink, RouteMetadata};
 use crate::content::portfolio;
 use crate::cv::SocialPlatform;
 use crate::generated_cv::CV as GENERATED_CV;
-use crate::routes::{CV, HOME, PROJECTS, metadata_for_path};
+use crate::routes::{CV, HOME, PROJECTS};
 
 #[component]
 pub fn HomePage() -> impl IntoView {
     let content = portfolio();
     let profile = content.profile;
     let imported_profile = &GENERATED_CV.profile;
-    let metadata = metadata_for_path(HOME.path);
-    remove_static_description_on_mount();
-
     view! {
-        <RouteMetadata route=metadata />
+        <RouteMetadata route=HOME />
 
         <section class="home-page">
             <div class="container home-page__inner">

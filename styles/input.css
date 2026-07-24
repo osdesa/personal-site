@@ -5,24 +5,10 @@
  * below keep component CSS independent from individual palette values.
  */
 @theme {
-  --color-blue-50: #eff7ff;
-  --color-blue-100: #dceeff;
-  --color-blue-300: #82c5ff;
-  --color-blue-400: #4ba8ff;
-  --color-blue-500: #1689f5;
-  --color-blue-600: #0870d1;
-  --color-blue-700: #0759a8;
-  --color-ink-950: #050b13;
-  --color-ink-900: #07111f;
-  --color-ink-800: #0d1a2a;
-  --color-slate-50: #f7f9fc;
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --breakpoint-xs: 30rem;
   --breakpoint-3xl: 100rem;
-  --radius-card: 1.25rem;
-  --shadow-card: 0 24px 70px rgb(3 12 24 / 0.16);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
@@ -30,7 +16,6 @@
   --surface-canvas: #111214;
   --surface-subtle: #17191c;
   --surface-raised: #1c1f23;
-  --surface-inverse: #f2f3f3;
   --text-primary: #f1f2f2;
   --text-secondary: #b2b5b8;
   --text-muted: #7f8489;
@@ -46,15 +31,13 @@
   --focus: #dce2e7;
   --header-bg: rgb(17 18 20 / 0.9);
   --grid-line: rgb(198 205 212 / 0.055);
+  --image-overlay: rgb(0 0 0 / 0.45);
   --shadow: 0 28px 80px rgb(0 0 0 / 0.32);
   --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
   --radius-lg: 1.25rem;
-  --radius-xl: 1.75rem;
   --transition-fast: 160ms ease;
   --transition-smooth: 420ms cubic-bezier(0.16, 1, 0.3, 1);
   --content-width: 76rem;
-  --content-narrow: 48rem;
   --header-height: 5rem;
   --section-space: clamp(5rem, 9vw, 8.5rem);
   --z-header: 40;
@@ -157,7 +140,7 @@ h3 {
   transform: translateY(-160%);
   border-radius: var(--radius-sm);
   background: var(--accent);
-  color: #06111f;
+  color: var(--text-inverse);
   font-weight: 700;
   transition: transform var(--transition-fast);
 }
@@ -196,40 +179,13 @@ h3 {
 }
 
 .brand {
-  display: grid;
-  grid-template-columns: 2.65rem auto;
+  display: flex;
   align-items: center;
-  column-gap: 0.75rem;
+  gap: 0.75rem;
   flex-shrink: 0;
 }
 
-.site-header .brand {
-  grid-template-columns: auto;
-}
-
-.brand__mark {
-  display: grid;
-  width: 2.65rem;
-  height: 2.65rem;
-  grid-row: span 2;
-  place-items: center;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.brand:hover .brand__mark {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
 .brand__name {
-  align-self: end;
   font-size: 0.88rem;
   font-weight: 750;
   letter-spacing: -0.01em;
@@ -237,7 +193,6 @@ h3 {
 }
 
 .brand__role {
-  align-self: start;
   color: var(--text-muted);
   font-size: 0.68rem;
   line-height: 1.3;
@@ -295,10 +250,12 @@ h3 {
 }
 
 .menu-toggle {
-  display: grid;
+  display: none;
   width: 2.65rem;
   height: 2.65rem;
+  align-content: center;
   padding: 0;
+  gap: 0.35rem;
   place-items: center;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -311,12 +268,6 @@ h3 {
 .menu-toggle:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
-}
-
-.menu-toggle {
-  display: none;
-  align-content: center;
-  gap: 0.35rem;
 }
 
 .menu-toggle span {
@@ -394,45 +345,10 @@ h3 {
   max-width: 42rem;
 }
 
-.section-heading--centred {
-  margin-inline: auto;
-  text-align: center;
-}
-
 .section-heading h2 {
   max-width: 38rem;
   margin-bottom: 1.25rem;
   font-size: clamp(2rem, 4.5vw, 3.5rem);
-}
-
-.section-heading__intro {
-  max-width: 39rem;
-  margin-bottom: 0;
-  color: var(--text-secondary);
-  font-size: clamp(1rem, 1.5vw, 1.12rem);
-}
-
-.section-heading-row {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 3.25rem;
-}
-
-.text-link {
-  flex-shrink: 0;
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid var(--border-strong);
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  font-weight: 700;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.text-link:hover {
-  border-color: var(--accent);
-  color: var(--accent);
 }
 
 .home-page {
@@ -455,11 +371,11 @@ h3 {
 
 .home-page h1 {
   max-width: 48rem;
-  margin-bottom: 1rem;
+  margin-bottom: clamp(1.5rem, 2.5vw, 2.25rem);
   font-size: clamp(4rem, 9vw, 8rem);
   font-weight: 650;
   letter-spacing: -0.075em;
-  line-height: 0.84;
+  line-height: 0.88;
 }
 
 .home-page__role {
@@ -561,23 +477,8 @@ h3 {
 }
 
 .project-card__image + .project-card__grid {
-  background: linear-gradient(to top, rgb(7 17 31 / 0.52), transparent 65%);
+  background: linear-gradient(to top, var(--image-overlay), transparent 65%);
   mask-image: none;
-}
-
-.project-card__mark {
-  z-index: 1;
-  display: grid;
-  width: 7rem;
-  height: 7rem;
-  place-items: center;
-  border: 1px solid var(--accent);
-  border-radius: 1.8rem 50% 50%;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 2rem;
-  font-weight: 800;
-  transform: rotate(-8deg);
 }
 
 .project-card__body {
@@ -687,7 +588,6 @@ h3 {
 }
 
 /* Skills, timeline and connective sections */
-.split-section,
 .cv-layout {
   display: grid;
   grid-template-columns: minmax(16rem, 0.75fr) minmax(0, 1.25fr);
@@ -703,18 +603,6 @@ h3 {
   border-bottom: 1px solid var(--border);
 }
 
-.skill-group__header {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-}
-
-.skill-group__header > span {
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-}
-
 .skill-group h3 {
   margin-bottom: 0.7rem;
   font-size: 1.35rem;
@@ -724,10 +612,6 @@ h3 {
   margin-bottom: 1rem;
   color: var(--text-secondary);
   font-size: 0.9rem;
-}
-
-.split-section__intro .button {
-  margin-top: 1.5rem;
 }
 
 .timeline {
@@ -792,11 +676,6 @@ h3 {
   font-weight: 650;
 }
 
-.timeline-entry__summary {
-  margin-bottom: 1rem;
-  color: var(--text-secondary);
-}
-
 .timeline-entry__highlights {
   margin-bottom: 1.25rem;
 }
@@ -809,13 +688,6 @@ h3 {
 
 .page-hero--compact {
   padding-bottom: clamp(4rem, 7vw, 6rem);
-}
-
-.page-hero__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
-  align-items: end;
-  gap: clamp(3rem, 10vw, 9rem);
 }
 
 .page-hero h1,
@@ -834,11 +706,6 @@ h3 {
   font-weight: 550;
   letter-spacing: -0.02em;
   line-height: 1.45;
-}
-
-.page-hero__grid > div p:last-child {
-  margin-bottom: 0;
-  color: var(--text-secondary);
 }
 
 .project-index-header {
@@ -1015,21 +882,22 @@ h3 {
 }
 
 .not-found__code {
-  position: absolute;
-  inset: 50% auto auto 50%;
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
   color: var(--text-ghost);
   font-family: var(--font-mono);
-  font-size: clamp(8rem, 24vw, 16rem);
+  font-size: clamp(6.5rem, 18vw, 12rem);
   font-weight: 900;
   letter-spacing: -0.12em;
-  line-height: 0.7;
-  transform: translate(-50%, -50%);
+  line-height: 0.72;
   white-space: nowrap;
 }
 
 .not-found .container {
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 .not-found h1 {
@@ -1044,13 +912,13 @@ h3 {
   color: var(--text-secondary);
 }
 
-/* Legal notice */
-.legal-notice__content {
+/* Legal and privacy notices */
+.notice__content {
   max-width: 62rem;
   border-top: 1px solid var(--border);
 }
 
-.legal-notice__section {
+.notice__section {
   display: grid;
   grid-template-columns: minmax(12rem, 0.55fr) minmax(0, 1.45fr);
   gap: clamp(2rem, 6vw, 6rem);
@@ -1058,28 +926,28 @@ h3 {
   border-bottom: 1px solid var(--border);
 }
 
-.legal-notice__section h2 {
+.notice__section h2 {
   margin-bottom: 0;
   font-size: clamp(1.35rem, 2.5vw, 1.85rem);
 }
 
-.legal-notice__section p {
+.notice__section p {
   max-width: 43rem;
   color: var(--text-secondary);
 }
 
-.legal-notice__section p:last-child {
+.notice__section p:last-child {
   margin-bottom: 0;
 }
 
-.legal-notice__section a {
+.notice__section a {
   color: var(--accent);
   text-decoration: underline;
   text-decoration-color: var(--border-strong);
   text-underline-offset: 0.2em;
 }
 
-.legal-notice__section a:hover {
+.notice__section a:hover {
   color: var(--accent-strong);
   text-decoration-color: currentcolor;
 }
@@ -1101,7 +969,6 @@ h3 {
 .brand--footer {
   width: fit-content;
   margin-bottom: 1.2rem;
-  grid-template-columns: auto;
 }
 
 .site-footer__grid > div:first-child > p {
@@ -1163,8 +1030,14 @@ h3 {
   text-decoration-color: currentcolor;
 }
 
+.site-footer__legal ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem 1.25rem;
+}
+
 @media (max-width: 64rem) {
-  .split-section,
   .cv-layout {
     gap: 4rem;
   }
@@ -1224,17 +1097,12 @@ h3 {
     color: var(--accent);
   }
 
-  .page-hero__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .split-section,
   .cv-layout {
     grid-template-columns: 1fr;
     gap: 3rem;
   }
 
-  .legal-notice__section {
+  .notice__section {
     grid-template-columns: 1fr;
     gap: 0.85rem;
   }
@@ -1263,12 +1131,9 @@ h3 {
     display: none;
   }
 
-  .brand__name {
-    align-self: center;
-  }
-
   .home-page h1 {
     font-size: clamp(3.6rem, 18vw, 5.2rem);
+    line-height: 0.92;
   }
 
   .home-page__summary {
@@ -1293,11 +1158,6 @@ h3 {
     margin-top: 2rem;
   }
 
-  .section-heading-row {
-    align-items: start;
-    flex-direction: column;
-  }
-
   .project-grid {
     grid-template-columns: 1fr;
   }
@@ -1314,6 +1174,10 @@ h3 {
   .page-hero h1,
   .not-found h1 {
     font-size: clamp(2.8rem, 14vw, 4rem);
+  }
+
+  .not-found {
+    padding-block: 3rem;
   }
 
   .project-index-header {
@@ -1337,6 +1201,10 @@ h3 {
     gap: 0.3rem;
     padding-block: 1rem;
   }
+
+  .site-footer__legal ul {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-height: 44rem) {
@@ -1345,6 +1213,7 @@ h3 {
   }
 
   .home-page h1 {
+    margin-bottom: 1.2rem;
     font-size: clamp(3.3rem, 8vw, 5rem);
   }
 
@@ -1364,16 +1233,6 @@ h3 {
 @media (max-height: 34rem) {
   .home-page__summary {
     display: none;
-  }
-}
-
-@media (max-width: 23rem) {
-  .brand__name {
-    display: none;
-  }
-
-  .brand {
-    grid-template-columns: 2.65rem;
   }
 }
 

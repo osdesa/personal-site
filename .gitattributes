@@ -1,4 +1,5 @@
 # Synchronized release artifacts must remain byte-for-byte identical upstream.
+*.sh text eol=lf
 /public/cv/Hayden-Farrell-CV.tex -text -whitespace
 /public/cv/Hayden-Farrell-CV.pdf -text
 /src/generated_cv.rs -text -whitespace

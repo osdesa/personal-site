@@ -17,11 +17,11 @@
       every route. The typed source of truth is `src/routes.rs`; this static
       fallback is kept in sync by metadata and output validation tests.
     -->
-    <link rel="canonical" href="https://haydenfarrell.dev/" />
+    <link id="site-canonical" rel="canonical" href="https://haydenfarrell.dev/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Hayden Farrell" />
     <meta property="og:title" content="Hayden Farrell | Software Engineer" />
-    <meta property="og:url" content="https://haydenfarrell.dev/" />
+    <meta id="site-og-url" property="og:url" content="https://haydenfarrell.dev/" />
     <meta property="og:image" content="https://haydenfarrell.dev/images/project-default.svg" />
     <meta
       property="og:description"
@@ -42,6 +42,8 @@
     />
     <link data-trunk rel="css" href="styles/generated.css" />
     <link data-trunk rel="copy-file" href="public/favicon.svg" />
+    <link data-trunk rel="copy-file" href="public/_headers" />
+    <link data-trunk rel="copy-file" href="public/_redirects" />
     <link data-trunk rel="copy-file" href="public/robots.txt" />
     <link data-trunk rel="copy-file" href="public/sitemap.xml" />
     <link data-trunk rel="copy-dir" href="public/images" data-target-path="images" />

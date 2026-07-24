@@ -13,7 +13,7 @@ fn evidence(kind: AutomationKind) -> PullRequestEvidence<'static> {
 }
 
 #[test]
-fn fixed_automation_branches_and_pr_metadata_are_stable() {
+fn fixed_automation_branches_and_markers_are_stable() {
     assert_eq!(AutomationKind::Cv.branch(), "automation/cv-sync");
     assert_eq!(AutomationKind::Projects.branch(), "automation/project-sync");
     assert_eq!(
@@ -23,14 +23,6 @@ fn fixed_automation_branches_and_pr_metadata_are_stable() {
     assert_eq!(
         AutomationKind::Projects.marker(),
         "<!-- personal-site-sync:projects -->"
-    );
-    assert_eq!(
-        AutomationKind::Cv.pull_request_title(),
-        "chore(cv): synchronize source release"
-    );
-    assert_eq!(
-        AutomationKind::Projects.pull_request_title(),
-        "chore(projects): synchronize portfolio data"
     );
 }
 

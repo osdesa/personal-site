@@ -1,5 +1,8 @@
 # ADR 0009: Reuse the production bundle for browser quality gates
 
+Status: amended in July 2026 so Lighthouse also gates pull requests and
+dependency audits run before merge.
+
 ## Context
 
 The quality milestone requires formatting, Clippy with warnings denied, Rust
@@ -28,8 +31,8 @@ locked frontend install, CSS build and production Trunk build, then uploads
 
 Browser accessibility checks download and serve that artifact through the
 repository-owned static SPA server. The Lighthouse budget job does the same on
-`main` only; it uses Playwright's installed Chromium path, CI-safe headless
-flags and one retry for a failed browser launch. It retains the documented
+pull requests and `main`; it uses Playwright's installed Chromium path, CI-safe
+headless flags and one retry for a failed browser launch. It retains the documented
 three-run median budgets and does not retry a completed audit that exceeds a
 budget.
 
@@ -42,16 +45,13 @@ artifacts are not used as cross-run dependency caches.
 The artifact boundary gives browser and performance tools an auditable common
 input: the exact release bundle produced by CI. It eliminates a redundant
 Trunk compilation, permits native and Wasm work to overlap, and keeps the
-expensive nine-navigation Lighthouse audit off the pull-request critical path
-without weakening the main-branch release gate. The narrowly scoped launch
-retry handles transient Chromium startup failures while preserving real budget
-failures.
+production bundle from being merged when it exceeds the established budget.
+The narrowly scoped launch retry handles transient Chromium startup failures
+while preserving real budget failures.
 
 ## Consequences
 
-- Pull requests retain all required build and browser coverage with a shorter
-  elapsed critical path.
-- Every `main` commit additionally enforces Lighthouse's accessibility,
+- Pull requests and every `main` commit enforce Lighthouse's accessibility,
   performance, best-practices, SEO, transfer-size and layout-shift budgets.
 - Artifact upload/download adds a small dependency between the web build and
   browser jobs, but `dist/` is small and this cost is lower than recompiling the

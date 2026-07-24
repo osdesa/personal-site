@@ -13,12 +13,17 @@ route page modules. They improve the browser experience and JavaScript-capable
 crawlers, but do **not** provide route-specific social previews for
 non-rendering crawlers.
 
+The route metadata component removes the static description, canonical and Open
+Graph URL fallback nodes before Leptos inserts the mounted route values. Browser
+tests require exactly one of each node after mounting and require the Not Found
+route to emit `noindex, nofollow`.
+
 `src/routes.rs` owns the typed canonical production origin
 `https://haydenfarrell.dev`. The generic initial document contains its home
 canonical URL, Open Graph URL, title, description and controlled local sharing
 image, plus the existing Twitter card fields. `public/robots.txt` permits normal
 crawling and identifies the production sitemap. `public/sitemap.xml` contains
-`/`, `/projects`, `/cv` and `/legal-notice`.
+`/`, `/projects`, `/cv`, `/legal` and `/privacy`.
 
 The mounted application also emits `Person` and `WebSite` JSON-LD from public
 generated CV identity and links. It excludes email and identifies the canonical
@@ -34,7 +39,23 @@ solely for route-specific previews.
 
 Validate the built directory with `npm run test:static` after a release build.
 It rejects missing required static files, non-production origins, Pages preview
-domains, localhost references, and the GitHub synchronization secret names.
+domains, localhost references, unresolved CSP placeholders, mismatched bootstrap
+hashes, and the GitHub synchronization secret names.
+
+## Static response security
+
+`public/_headers` is copied into the bundle for Cloudflare Pages. It restricts
+scripts, styles, images and connections to this origin, disables unnecessary
+browser capabilities, prevents framing and MIME sniffing, and applies a strict
+referrer policy. Trunk emits one inline Wasm bootstrap module, so a post-build
+hook computes the SHA-256 of that exact generated script and substitutes it into
+the CSP. The build fails if the number of inline modules or placeholders changes.
+
+The local SPA server reads the finalized universal header block rather than
+maintaining a second policy. Playwright and Lighthouse therefore exercise the
+application under the same CSP as production. Fingerprinted top-level CSS,
+JavaScript and Wasm files receive immutable one-year caching. Pages preview
+hostnames receive `X-Robots-Tag: noindex`; the canonical hostname does not.
 
 ## Performance measurement and budgets
 
@@ -50,19 +71,37 @@ npm run test:performance
 The repository-owned runner starts a local static SPA server, audits `/`,
 `/projects` and `/cv` three times with the desktop preset, and evaluates median
 results. The reports are written to the ignored `.lighthouseci/` directory
-locally. On every `main` build, CI runs the same audit against the exact `dist/`
-artifact produced by the production Trunk build. It explicitly selects the
+locally. On pull requests and every `main` build, CI runs the same audit against
+the exact `dist/` artifact produced by the production Trunk build. It explicitly selects the
 cached Playwright Chromium executable, uses CI-safe headless flags, and retries
 one failed browser launch before treating the check as an infrastructure failure.
 Budget failures are never retried or averaged away. A deployed audit is still
 required once hosting, HTTPS and cache headers exist.
 
-The initial local release baseline on 17 July 2026 was a 0.32 s FCP and 0.68 s
-LCP median across the nine route/runs; the initial transfer was 480,175 bytes
-(about 469 KiB, principally 28 KiB CSS, 46 KiB JavaScript and 402 KiB Wasm).
-The release build has no observed layout shift. These values justify the
-following regression budgets rather than treating ideal local timings as hard
-limits.
+The production-readiness pass on 24 July 2026 recorded three desktop runs on
+each core route before and after the changes. Both measurements used the
+repository runner and local release bundle. Lighthouse was updated from 13.3.0
+to 13.4.1 between measurements, so the SEO change must not be attributed only
+to application code.
+
+| Median across nine runs | Before | After |
+| --- | ---: | ---: |
+| Performance | 1.00 | 1.00 |
+| Accessibility | 1.00 | 1.00 |
+| Best Practices | 1.00 | 1.00 |
+| SEO | 0.92 | 1.00 |
+| First Contentful Paint | 322.44 ms | 322.55 ms |
+| Largest Contentful Paint | 642.44 ms | 642.55 ms |
+| Total Blocking Time | 0 ms | 0 ms |
+| Cumulative Layout Shift | 0 | 0 |
+| Speed Index | 322.44 ms | 322.55 ms |
+| Transferred bytes | 464,894 | 466,312 |
+
+The 1,418-byte transfer increase (0.31%) was measured after compatible Rust
+dependency updates and remains well below the budget. Timing differences below
+one millisecond are measurement noise. The release build has no observed layout
+shift. These values justify the following regression budgets rather than
+treating ideal local timings as hard limits.
 
 | Measure | CI threshold | Rationale |
 | --- | --- | --- |
@@ -88,13 +127,11 @@ deployed audit is still required after hosting adds HTTPS and cache headers.
 
 ## CI efficiency
 
-Pull requests run the full Rust, CSS, production Trunk and browser-accessibility
-coverage, but do not run the nine Lighthouse navigations. The performance gate
-runs on `main`, where it protects the integration artifact without making review
-feedback unnecessarily slow. The native quality job and web-build job start in
-parallel. Browser and performance jobs consume the one-day `dist/` artifact, so
-there is one CSS build and one Trunk build per workflow run rather than a second
-release compilation for browser checks.
+The native quality job and web-build job start in parallel. Browser and
+performance jobs then consume the one-day `dist/` artifact, so there is one CSS
+build and one Trunk build per workflow run rather than a second release
+compilation for browser checks. Both browser jobs remain required on pull
+requests so an accessibility or performance regression cannot merge.
 
 Cargo build data, npm's package-download cache and versioned Playwright Chromium
 are cached. These caches are accelerators, not inputs to correctness: each Node
