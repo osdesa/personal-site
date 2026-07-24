@@ -62,8 +62,8 @@ async function main() {
   const sitemap = await readFile(resolve(outputDirectory, "sitemap.xml"), "utf8");
   const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
   assert(
-    JSON.stringify(locations) === JSON.stringify([`${origin}/`, `${origin}/projects`, `${origin}/cv`]),
-    "sitemap.xml must contain exactly the three public canonical routes",
+    JSON.stringify(locations) === JSON.stringify([`${origin}/`, `${origin}/projects`, `${origin}/cv`, `${origin}/legal-notice`]),
+    "sitemap.xml must contain exactly the four public canonical routes",
   );
   const robots = await readFile(resolve(outputDirectory, "robots.txt"), "utf8");
   assert(robots.includes(`Sitemap: ${origin}/sitemap.xml`), "robots.txt has the wrong sitemap URL");

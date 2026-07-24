@@ -212,8 +212,9 @@ Stage 3 contract are documented in `docs/cv-import.md`.
 
 ## Routing and static hosting
 
-Leptos Router handles `/`, `/projects` and `/cv`, with a fallback view for
-unknown paths. About and Contact are intentionally not separate routes.
+Leptos Router handles `/`, `/projects`, `/cv` and the footer-linked
+`/legal-notice`, with a fallback view for unknown paths. About and Contact are
+intentionally not separate routes.
 Cloudflare Pages builds the repository root from `main` and serves `dist/` at
 `https://haydenfarrell.dev`. Its normal SPA fallback must reach `index.html`
 for non-file paths while serving assets unchanged. Do not add a top-level
@@ -246,7 +247,7 @@ than browser markup snapshots:
 
 CI additionally compiles every target with warnings denied and builds the actual
 Wasm application. Playwright serves the built static SPA, scans the home,
-projects, CV and not-found routes with axe, and checks the mobile menu's
+projects, CV, legal-notice and not-found routes with axe, and checks the mobile menu's
 keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
 workflow repeats the native quality suite before opening an artifact update pull
 request.
@@ -257,7 +258,7 @@ CSS/JavaScript/Wasm output, absolute metadata, the canonical route set, and
 the absence of localhost, Pages-preview, and synchronization-token-name leaks.
 
 The repository-owned Lighthouse runner separately serves `dist/` as a local SPA
-after the release build, audits the three public routes three times, and
+after the release build, audits the three core portfolio routes three times, and
 enforces median category, transfer-size and layout-shift budgets. It is a
 development/CI dependency only; no Lighthouse, analytics or third-party script
 enters the browser runtime.

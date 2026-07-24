@@ -7,7 +7,8 @@ features. The work must make accessibility, discoverability, performance and
 production behaviour measurable and resistant to regression.
 
 This is an engineering-quality milestone, not a redesign. Preserve the
-existing permanent dark design, three public routes (`/`, `/projects`, `/cv`),
+existing permanent dark design, public routes (`/`, `/projects`, `/cv` and
+`/legal-notice`),
 typed generated CV/project content, and static Leptos/Trunk architecture.
 
 ## Current baseline
@@ -117,7 +118,8 @@ Implement this only when the owner chooses a host and public domain.
 
 1. Follow `docs/deployment.md`: build with pinned dependencies, publish
    `dist/`, enable HTTPS and configure the SPA rewrite to `index.html`.
-2. Verify direct navigation and refresh for `/`, `/projects`, `/cv` and an
+2. Verify direct navigation and refresh for `/`, `/projects`, `/cv`,
+   `/legal-notice` and an
    unknown route on the deployed host.
 3. Set the canonical origin, social image URLs, sitemap and robots policy.
 4. Add preview deployment and deployment-status checks if supported by the

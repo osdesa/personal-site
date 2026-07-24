@@ -9,7 +9,7 @@ validated, versioned upstream release rather than maintained by hand.
 The initial design and automated CV presentation milestones are complete. The
 site includes:
 
-- Home, Projects, CV and accessible not-found routes
+- Home, Projects, CV, Legal notice and accessible not-found routes
 - a focused homepage with generated selected projects and no profile imagery
 - responsive desktop, tablet and mobile layouts
 - a permanent dark charcoal-and-grey visual system

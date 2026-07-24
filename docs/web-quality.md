@@ -18,7 +18,7 @@ non-rendering crawlers.
 canonical URL, Open Graph URL, title, description and controlled local sharing
 image, plus the existing Twitter card fields. `public/robots.txt` permits normal
 crawling and identifies the production sitemap. `public/sitemap.xml` contains
-only `/`, `/projects`, and `/cv`.
+`/`, `/projects`, `/cv` and `/legal-notice`.
 
 The mounted application also emits `Person` and `WebSite` JSON-LD from public
 generated CV identity and links. It excludes email and identifies the canonical

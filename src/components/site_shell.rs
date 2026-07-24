@@ -4,7 +4,7 @@ use leptos_router::components::A;
 use crate::content::portfolio;
 use crate::cv::SocialPlatform;
 use crate::generated_cv::CV as GENERATED_CV;
-use crate::routes::{HOME, NAVIGATION_ROUTES};
+use crate::routes::{HOME, LEGAL_NOTICE, NAVIGATION_ROUTES};
 
 #[component]
 pub fn SiteShell(children: Children) -> impl IntoView {
@@ -125,7 +125,7 @@ pub fn SiteShell(children: Children) -> impl IntoView {
             </div>
             <div class="container site-footer__base">
                 <p>{format!("© 2026 {}.", imported_profile.full_name)}</p>
-                <p class="site-footer__status"><span aria-hidden="true"></span>"Built for the long term"</p>
+                <A href=LEGAL_NOTICE.path>"Legal notice"</A>
             </div>
         </footer>
     }

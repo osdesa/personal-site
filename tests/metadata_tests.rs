@@ -2,8 +2,8 @@ use std::fs;
 
 use personal_site::components::structured_data_json;
 use personal_site::routes::{
-    HOME, NAVIGATION_ROUTES, PRODUCTION_ORIGIN, SITE_DESCRIPTION, SITE_NAME,
-    canonical_url_for_path, social_image_url,
+    HOME, PRODUCTION_ORIGIN, PUBLIC_ROUTES, SITE_DESCRIPTION, SITE_NAME, canonical_url_for_path,
+    social_image_url,
 };
 
 #[test]
@@ -53,7 +53,7 @@ fn static_document_has_canonical_production_metadata() {
 #[test]
 fn canonical_urls_are_derived_from_the_one_typed_origin() {
     assert_eq!(PRODUCTION_ORIGIN.as_str(), "https://haydenfarrell.dev");
-    for route in NAVIGATION_ROUTES {
+    for route in PUBLIC_ROUTES {
         assert_eq!(
             canonical_url_for_path(route.path),
             format!("https://haydenfarrell.dev{}", route.path)
@@ -73,10 +73,10 @@ fn crawl_control_files_contain_only_the_public_production_routes() {
     assert!(robots.contains("User-agent: *"));
     assert!(robots.contains("Allow: /"));
     assert!(robots.contains("Sitemap: https://haydenfarrell.dev/sitemap.xml"));
-    for path in ["/", "/projects", "/cv"] {
+    for path in ["/", "/projects", "/cv", "/legal-notice"] {
         assert!(sitemap.contains(&canonical_url_for_path(path)));
     }
-    assert_eq!(sitemap.matches("<loc>").count(), 3);
+    assert_eq!(sitemap.matches("<loc>").count(), 4);
     assert!(!sitemap.contains("not-found"));
 }
 
