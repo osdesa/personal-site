@@ -86,7 +86,10 @@ Desktop links show the active route with colour and an underline. Mobile uses an
 explicitly labelled button with `aria-expanded`; its closed list is visually
 hidden and natively inert, so its links are absent from both the accessibility
 tree and keyboard order. Selecting a mobile route closes the menu and moves
-focus to the focusable main landmark. The sticky header maintains context.
+focus to the focusable main landmark. Mobile links retain inset horizontal
+padding for comfortable touch and readable text alignment. The sticky header
+maintains context. Legal and privacy notices remain outside the primary
+navigation and appear alongside Projects and CV in the footer's Navigate group.
 
 ### Buttons and text links
 
@@ -113,10 +116,13 @@ copy. Pages preserve one level-one heading and a logical level hierarchy.
 The CV follows the balanced two-column layout established in commit `67cbe097`:
 a section-heading rail beside a wide reading column. At 52rem it becomes one
 column. Experience and education use the original vertical timeline treatment,
-with decorative markers, compact date labels, and organisation/location grouped
-beneath each heading. Skills reuse the shared badge language. Projects are not
-repeated on the CV page because they have a dedicated route. The web hierarchy
-prioritises readable content flow and does not imitate the PDF's print layout.
+with decorative markers and compact date labels. Experience keeps the role as
+its heading with organisation and location beneath it; education uses the
+institution and location as its heading with qualification and grades as the
+smaller supporting detail. Skills reuse the shared badge language. Projects are
+not repeated on the CV page because they have a dedicated route. The web
+hierarchy prioritises readable content flow and does not imitate the PDF's
+print layout.
 
 Imported inline emphasis maps to native semantic elements. Imported links keep
 the standard focus ring and a subtle token-based underline. Source version and

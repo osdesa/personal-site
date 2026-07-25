@@ -162,11 +162,15 @@ fn heading_email_labels_are_independent_from_the_mailto_address() {
 
 #[test]
 fn profile_website_is_optional() {
-    let without_website = SOURCE.replacen(
-        " $|$\n    \\href{https://example.test/}{\\underline{Website}}",
-        "",
-        1,
-    );
+    let website = "\\href{https://example.test/}{\\underline{Website}}";
+    let website_start = SOURCE
+        .find(website)
+        .expect("the fixture should contain a personal website");
+    let separator_start = SOURCE[..website_start]
+        .rfind("$|$")
+        .expect("the website should follow a heading separator");
+    let mut without_website = SOURCE.to_owned();
+    without_website.replace_range(separator_start..website_start + website.len(), "");
 
     let cv = parse_cv(&without_website).unwrap();
 
