@@ -3,10 +3,11 @@ use personal_site::cv_sync::{
     validate_pdf, validate_tex,
 };
 
+mod support;
+
 const SHA_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SHA_B: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const VALID_TEX: &[u8] = b"\\documentclass{article}\n\\begin{document}\nCV\n\\end{document}\n";
-const CHECKED_IN_PDF: &[u8] = include_bytes!("../public/cv/Hayden-Farrell-CV.pdf");
 
 fn tag(name: &str, commit_sha: &str) -> RemoteTag {
     RemoteTag {
@@ -62,11 +63,13 @@ fn tex_validation_rejects_truncated_and_non_utf8_documents() {
 
 #[test]
 fn pdf_validation_parses_the_document_and_rejects_wrappers_or_truncation() {
-    assert!(validate_pdf(CHECKED_IN_PDF).is_ok());
+    let valid_pdf = support::valid_pdf();
+
+    assert!(validate_pdf(&valid_pdf).is_ok());
     assert!(validate_pdf(b"<html>Not Found</html>").is_err());
     assert!(validate_pdf(b"%PDF-1.7\nnot a PDF\n%%EOF\n").is_err());
 
-    let without_eof = &CHECKED_IN_PDF[..CHECKED_IN_PDF.len() - 16];
+    let without_eof = &valid_pdf[..valid_pdf.len() - 16];
     assert!(validate_pdf(without_eof).is_err());
 }
 

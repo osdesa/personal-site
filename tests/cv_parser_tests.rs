@@ -1,17 +1,14 @@
 use personal_site::{
     cv::{Inline, SocialPlatform},
     cv_sync::{RemoteTag, generate_cv_module, parse_cv},
-    generated_cv,
 };
 
-const SOURCE: &str = include_str!("../public/cv/Hayden-Farrell-CV.tex");
-const GENERATED: &[u8] = include_bytes!("../src/generated_cv.rs");
-const COMMIT_SHA_LENGTH: usize = 40;
+const SOURCE: &str = include_str!("fixtures/cv/valid.tex");
 
 fn source_identity() -> RemoteTag {
     RemoteTag {
-        name: generated_cv::SOURCE_TAG.to_owned(),
-        commit_sha: generated_cv::SOURCE_COMMIT_SHA.to_owned(),
+        name: "v1.2.3".to_owned(),
+        commit_sha: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned(),
     }
 }
 
@@ -99,11 +96,11 @@ fn replace_mailto_target(source: &str, replacement: &str) -> String {
 }
 
 #[test]
-fn checked_in_cv_parses_every_supported_domain_section() {
+fn example_cv_parses_every_supported_domain_section() {
     let cv = parse_cv(SOURCE).unwrap();
 
-    assert!(!cv.profile.full_name.trim().is_empty());
-    assert!(cv.profile.contact.email.contains('@'));
+    assert_eq!(cv.profile.full_name, "Example Person");
+    assert_eq!(cv.profile.contact.email, "person@example.test");
     assert_eq!(cv.profile.social_links.len(), 2);
     assert!(
         cv.profile
@@ -117,6 +114,12 @@ fn checked_in_cv_parses_every_supported_domain_section() {
             .iter()
             .any(|link| link.platform == SocialPlatform::GitHub)
     );
+    let website = cv
+        .profile
+        .website
+        .as_ref()
+        .expect("the example exercises the optional website link");
+    assert_eq!(website.url, "https://example.test/");
 
     assert!(!cv.education.is_empty());
     assert!(cv.education.iter().all(|entry| {
@@ -151,6 +154,27 @@ fn checked_in_cv_parses_every_supported_domain_section() {
 }
 
 #[test]
+fn heading_email_labels_are_independent_from_the_mailto_address() {
+    let cv = parse_cv(SOURCE).unwrap();
+
+    assert_eq!(cv.profile.contact.email, "person@example.test");
+}
+
+#[test]
+fn profile_website_is_optional() {
+    let without_website = SOURCE.replacen(
+        " $|$\n    \\href{https://example.test/}{\\underline{Website}}",
+        "",
+        1,
+    );
+
+    let cv = parse_cv(&without_website).unwrap();
+
+    assert!(cv.profile.website.is_none());
+    assert_eq!(cv.profile.social_links.len(), 2);
+}
+
+#[test]
 fn nested_inline_formatting_is_structured_not_html() {
     let source = replace_first_document_content(
         SOURCE,
@@ -178,7 +202,7 @@ fn unknown_inline_commands_fail_with_clear_source_diagnostics() {
 
     let error = parse_cv(&invalid).unwrap_err();
 
-    assert!(error.line() > 100);
+    assert!(error.line() > 0);
     assert!(error.column() > 0);
     assert!(
         error
@@ -256,7 +280,7 @@ fn imported_links_require_complete_safe_destinations() {
 
     let mailto_headers = replace_mailto_target(
         SOURCE,
-        "mailto:haydenfarrell@outlook.com?bcc=unexpected@example.com",
+        "mailto:person@example.test?bcc=unexpected@example.com",
     );
     assert!(
         parse_cv(&mailto_headers)
@@ -281,29 +305,8 @@ fn parsing_and_generation_are_deterministic_regression_boundaries() {
     let first_generated = generate_cv_module(&first, &source_identity());
     let second_generated = generate_cv_module(&second, &source_identity());
     assert_eq!(first_generated, second_generated);
-    if first_generated != GENERATED {
-        let mismatch = first_generated
-            .iter()
-            .zip(GENERATED)
-            .position(|(left, right)| left != right)
-            .unwrap_or(first_generated.len().min(GENERATED.len()));
-        panic!(
-            "generated regression differs at byte {mismatch}: expected {:?}, actual {:?}",
-            String::from_utf8_lossy(
-                &first_generated
-                    [mismatch.saturating_sub(40)..(mismatch + 80).min(first_generated.len())]
-            ),
-            String::from_utf8_lossy(
-                &GENERATED[mismatch.saturating_sub(40)..(mismatch + 80).min(GENERATED.len())]
-            )
-        );
-    }
-    assert_eq!(generated_cv::CV, first);
-    assert!(!generated_cv::SOURCE_TAG.is_empty());
-    assert_eq!(generated_cv::SOURCE_COMMIT_SHA.len(), COMMIT_SHA_LENGTH);
-    assert!(
-        generated_cv::SOURCE_COMMIT_SHA
-            .chars()
-            .all(|character| { character.is_ascii_hexdigit() && !character.is_ascii_uppercase() })
-    );
+    let generated = String::from_utf8(first_generated).unwrap();
+    assert!(generated.contains("pub const SOURCE_TAG: &str = \"v1.2.3\";"));
+    assert!(generated.contains("ProfileWebsite"));
+    assert!(generated.contains("Example Person"));
 }

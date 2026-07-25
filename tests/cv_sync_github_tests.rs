@@ -10,9 +10,10 @@ use personal_site::cv_sync::{
 };
 use tempfile::TempDir;
 
+mod support;
+
 const SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-const PDF: &[u8] = include_bytes!("../public/cv/Hayden-Farrell-CV.pdf");
-const TEX: &[u8] = include_bytes!("../public/cv/Hayden-Farrell-CV.tex");
+const TEX: &str = include_str!("fixtures/cv/valid.tex");
 
 struct Response {
     expected_target: &'static str,
@@ -76,13 +77,13 @@ fn github_adapter_lists_tags_and_downloads_both_files_by_commit_sha() {
             expected_target: "/osdesa/cv/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Hayden-Farrell-CV.tex",
             status: "200 OK",
             content_type: "text/plain",
-            body: TEX.to_vec(),
+            body: TEX.as_bytes().to_vec(),
         },
         Response {
             expected_target: "/osdesa/cv/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Hayden-Farrell-CV.pdf",
             status: "200 OK",
             content_type: "application/pdf",
-            body: PDF.to_vec(),
+            body: support::valid_pdf(),
         },
     ]);
     let source =
@@ -102,7 +103,7 @@ fn github_adapter_lists_tags_and_downloads_both_files_by_commit_sha() {
     );
     assert_eq!(
         fs::read(root.path().join("public/cv/Hayden-Farrell-CV.tex")).unwrap(),
-        TEX
+        TEX.as_bytes()
     );
 }
 

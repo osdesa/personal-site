@@ -119,10 +119,13 @@ npm run test:performance
 ```
 
 Rust tests intentionally target stable logic: content integrity, unique identifiers,
-route metadata and content selection. Browser tests serve the release-style Trunk
-bundle, use axe to scan every public and not-found route, and cover the 320px
-mobile menu, focus return, overflow and reduced-motion behaviour. Large generated HTML
-snapshots are avoided because they would be brittle without improving confidence.
+route metadata and content selection. CV parser, transport and transaction tests
+use a repository-owned example document and generated minimal PDF; one production
+bundle test retains the real-CV attachment to verify manifest hashes and exact
+regeneration. Browser tests serve the release-style Trunk bundle, use axe to scan
+every public and not-found route, and cover the 320px mobile menu, focus return,
+overflow and reduced-motion behaviour. Large generated HTML snapshots are avoided
+because they would be brittle without improving confidence.
 All Rust tests—including unit-style tests—live under `tests/`; source modules do
 not contain inline `#[cfg(test)]` sections.
 

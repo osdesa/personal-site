@@ -161,10 +161,10 @@ slow artwork cannot move written card content.
 ### `src/cv.rs` and `src/generated_cv.rs`
 
 `cv.rs` owns the presentation-independent imported CV domain: profile and
-contact details, recognised social platforms, education, experience, projects,
-skills, typed locations and month-precision date ranges. `RichText` is a safe
-tree of text, strong, emphasis, underline and validated link nodes; it cannot
-contain HTML.
+contact details, recognised social platforms, an optional personal website,
+education, experience, projects, skills, typed locations and month-precision
+date ranges. `RichText` is a safe tree of text, strong, emphasis, underline and
+validated link nodes; it cannot contain HTML.
 
 The model uses `Cow`, allowing the native parser to construct owned values and
 the generated module to expose borrowed static data without runtime parsing or
@@ -245,13 +245,21 @@ than browser markup snapshots:
 - featured-project selection
 - unique internal routes and page titles
 - semantic tag selection, manifest and artifact validation
-- complete CV parsing, typed semantic values and nested safe formatting
+- complete fixture-driven CV parsing, typed semantic values and nested safe
+  formatting
 - malformed structures, missing declarations/sections and unknown commands
-- deterministic parsing/generation against the checked-in regression artifact
+- deterministic parsing/generation against a repository-owned example CV
 - GitHub transport behavior against a deterministic local HTTP server
 - unchanged, update, corruption, unsupported-LaTeX, network, lock, tag-movement
   and rollback paths across all four committed paths
 - integrity of the checked-in CV bundle against its manifest
+
+The parser, transport and transaction suites use a synthetic example CV and a
+minimal generated PDF so they test the documented grammar and synchronization
+behavior rather than Hayden's current wording. The final manifest-integrity
+test deliberately retains the production attachment: it reparses and
+regenerates the checked-in bundle to prove that the published source, PDF,
+typed data and provenance belong together.
 
 CI additionally compiles every target with warnings denied and builds the actual
 Wasm application. Playwright serves the built static SPA, scans the home,

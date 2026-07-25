@@ -12,10 +12,11 @@ use personal_site::cv_sync::{
 };
 use tempfile::TempDir;
 
+mod support;
+
 const SHA_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SHA_B: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-const PDF: &[u8] = include_bytes!("../public/cv/Hayden-Farrell-CV.pdf");
-const TEX: &str = include_str!("../public/cv/Hayden-Farrell-CV.tex");
+const TEX: &str = include_str!("fixtures/cv/valid.tex");
 
 #[derive(Clone)]
 struct FakeSource {
@@ -70,11 +71,11 @@ fn tag(name: &str, commit_sha: &str) -> RemoteTag {
 }
 
 fn tex(label: &str) -> Vec<u8> {
-    TEX.replacen("Hayden Farrell", label, 1).into_bytes()
+    TEX.replacen("Example Person", label, 1).into_bytes()
 }
 
 fn commit_bundle(root: &Path, version: &str, sha: &str, source: Vec<u8>) {
-    let bundle = ValidatedBundle::new(tag(version, sha), source, PDF.to_vec()).unwrap();
+    let bundle = ValidatedBundle::new(tag(version, sha), source, support::valid_pdf()).unwrap();
     CvBundleStore::new(root).commit(&bundle).unwrap();
 }
 
@@ -95,7 +96,7 @@ fn update_downloads_from_the_selected_commit_and_commits_one_valid_bundle() {
     let root = TempDir::new().unwrap();
     let source = FakeSource::new(vec![tag("v1.9.0", SHA_A), tag("v1.10.0", SHA_B)])
         .file(SHA_B, TEX_FILENAME, Ok(tex("new")))
-        .file(SHA_B, PDF_FILENAME, Ok(PDF.to_vec()));
+        .file(SHA_B, PDF_FILENAME, Ok(support::valid_pdf()));
 
     let outcome = synchronize(&source, &CvBundleStore::new(root.path())).unwrap();
 
@@ -202,14 +203,14 @@ fn unsupported_latex_preserves_source_pdf_generated_data_and_manifest() {
     let unsupported = String::from_utf8(tex("new"))
         .unwrap()
         .replacen(
-            "Developing a user-space",
-            "\\unsupported{value} Developing a user-space",
+            "Built \\textbf{reliable}",
+            "\\unsupported{value} Built \\textbf{reliable}",
             1,
         )
         .into_bytes();
     let source = FakeSource::new(vec![tag("v2.0.0", SHA_B)])
         .file(SHA_B, TEX_FILENAME, Ok(unsupported))
-        .file(SHA_B, PDF_FILENAME, Ok(PDF.to_vec()));
+        .file(SHA_B, PDF_FILENAME, Ok(support::valid_pdf()));
 
     let error = synchronize(&source, &CvBundleStore::new(root.path())).unwrap_err();
 
@@ -226,7 +227,7 @@ fn lock_failure_happens_before_replacement_and_preserves_current_version() {
     fs::write(root.path().join("public/cv/.cv-sync.lock"), b"held").unwrap();
     let source = FakeSource::new(vec![tag("v2.0.0", SHA_B)])
         .file(SHA_B, TEX_FILENAME, Ok(tex("new")))
-        .file(SHA_B, PDF_FILENAME, Ok(PDF.to_vec()));
+        .file(SHA_B, PDF_FILENAME, Ok(support::valid_pdf()));
 
     assert!(matches!(
         synchronize(&source, &CvBundleStore::new(root.path())),

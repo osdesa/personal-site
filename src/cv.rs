@@ -30,6 +30,8 @@ pub struct Profile<'a> {
     pub contact: ContactDetails<'a>,
     /// Supported social profiles in heading order.
     pub social_links: Cow<'a, [SocialLink<'a>]>,
+    /// Optional personal website published in the document heading.
+    pub website: Option<ProfileWebsite<'a>>,
 }
 
 /// Direct, non-social contact details.
@@ -54,6 +56,15 @@ pub struct SocialLink<'a> {
     /// Recognised platform.
     pub platform: SocialPlatform,
     /// Absolute HTTPS profile URL.
+    pub url: Cow<'a, str>,
+    /// Safe structured label.
+    pub label: RichText<'a>,
+}
+
+/// A validated personal website link and its authored label.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProfileWebsite<'a> {
+    /// Absolute HTTPS website URL.
     pub url: Cow<'a, str>,
     /// Safe structured label.
     pub label: RichText<'a>,
