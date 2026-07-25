@@ -1,21 +1,21 @@
 {
   "schema_version": 2,
   "repository": "osdesa/cv",
-  "tag": "v1.0.1",
-  "commit_sha": "9b7b9ea7a0416f2f091553a2bf12e5469cf6616f",
+  "tag": "v1.0.2",
+  "commit_sha": "4725b3f0f5395d901851fc8cf815ea2936e6e6ce",
   "source": {
     "path": "public/cv/Hayden-Farrell-CV.tex",
-    "bytes": 7389,
-    "sha256": "dde7e852af900d54ca4f21d863e679aa8798eac556cbbfb89de1102579da0424"
+    "bytes": 7484,
+    "sha256": "804d81d1f961159ffa99aea6fc23af1e9f2651f1f0f1f2eca37fe3257fb4156b"
   },
   "pdf": {
     "path": "public/cv/Hayden-Farrell-CV.pdf",
-    "bytes": 102220,
-    "sha256": "a4b73f9a26ac6bba8428ef3a864b1a4058bb43c0a20f7d94c9772cf32d746839"
+    "bytes": 102405,
+    "sha256": "ecc61e49f2eeeb72845beeffeaebce47b932f811ef8eea3d5ca8530f29e794f1"
   },
   "generated": {
     "path": "src/generated_cv.rs",
-    "bytes": 14300,
-    "sha256": "3583d1ff23e04c21db1777810f62612f90b418457b1afe5572f666ebbf9a67a8"
+    "bytes": 15383,
+    "sha256": "1693612b851b9d9e69057f52ff22d97b4e63837a80b8c404e597474cdebd6dc7"
   }
 }

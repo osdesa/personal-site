@@ -2,7 +2,7 @@ use std::{borrow::Cow, fmt};
 
 use crate::cv::{
     ContactDetails, Cv, CvDate, DateRange, DateRangeEnd, Education, Experience, Inline, Location,
-    Month, Profile, Project, RichText, SkillGroup, SocialLink, SocialPlatform,
+    Month, Profile, ProfileWebsite, Project, RichText, SkillGroup, SocialLink, SocialPlatform,
 };
 
 const DOCUMENT_START: &str = "\\begin{document}";
@@ -162,15 +162,12 @@ impl<'a> Parser<'a> {
             return Err(self.error("profile heading must use \\vspace{1pt}"));
         }
 
-        let (email_target, email_label) = self.parse_href()?;
+        let (email_target, _) = self.parse_href()?;
         let email = email_target
             .strip_prefix("mailto:")
             .ok_or_else(|| self.error("the first heading link must be a mailto email address"))?;
         if email.is_empty() || email.contains(char::is_whitespace) {
             return Err(self.error("heading email address is malformed"));
-        }
-        if flatten_rich_text(&email_label) != email {
-            return Err(self.error("heading email label must match its mailto address"));
         }
         self.expect("$|$")?;
 
@@ -180,6 +177,12 @@ impl<'a> Parser<'a> {
         if first_social.platform == second_social.platform {
             return Err(self.error("heading must contain one LinkedIn and one GitHub link"));
         }
+        let website = if self.next_is("$|$") {
+            self.expect("$|$")?;
+            Some(self.parse_website_link()?)
+        } else {
+            None
+        };
         self.expect("\\end{center}")?;
 
         Ok(Profile {
@@ -188,6 +191,7 @@ impl<'a> Parser<'a> {
                 email: Cow::Owned(email.to_owned()),
             },
             social_links: Cow::Owned(vec![first_social, second_social]),
+            website,
         })
     }
 
@@ -205,6 +209,17 @@ impl<'a> Parser<'a> {
         };
         Ok(SocialLink {
             platform,
+            url: Cow::Owned(url),
+            label,
+        })
+    }
+
+    fn parse_website_link(&mut self) -> Result<ProfileWebsite<'static>, CvParseError> {
+        let (url, label) = self.parse_href()?;
+        if !url.starts_with("https://") {
+            return Err(self.error("the profile website must use an absolute HTTPS URL"));
+        }
+        Ok(ProfileWebsite {
             url: Cow::Owned(url),
             label,
         })
@@ -786,20 +801,6 @@ fn plain_only(value: &RichText<'_>) -> Option<String> {
         }
     }
     Some(output)
-}
-
-fn flatten_rich_text(value: &RichText<'_>) -> String {
-    let mut output = String::new();
-    for node in value.nodes.iter() {
-        match node {
-            Inline::Text(text) => output.push_str(text),
-            Inline::Strong(content) | Inline::Emphasis(content) | Inline::Underline(content) => {
-                output.push_str(&flatten_rich_text(content))
-            }
-            Inline::Link { label, .. } => output.push_str(&flatten_rich_text(label)),
-        }
-    }
-    output
 }
 
 fn validate_link_target(target: &str) -> Result<(), &'static str> {

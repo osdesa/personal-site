@@ -21,7 +21,9 @@ pub fn generate_cv_module(cv: &Cv<'_>, source: &RemoteTag) -> Vec<u8> {
         writer.line(
             "ContactDetails, Cv, CvDate, DateRange, DateRangeEnd, Education, Experience, Inline, Location,",
         );
-        writer.line("Month, Profile, Project, RichText, SkillGroup, SocialLink, SocialPlatform,");
+        writer.line(
+            "Month, Profile, ProfileWebsite, Project, RichText, SkillGroup, SocialLink, SocialPlatform,",
+        );
     });
     writer.line("};");
     writer.line("");
@@ -68,6 +70,19 @@ fn write_cv(writer: &mut RustWriter, cv: &Cv<'_>) {
             }
         });
         writer.line("]),");
+        match &cv.profile.website {
+            Some(website) => {
+                writer.line("website: Some(ProfileWebsite {");
+                writer.indented(|writer| {
+                    writer.field_cow("url", &website.url);
+                    writer.line("label: RichText {");
+                    writer.indented(|writer| write_rich_nodes(writer, &website.label));
+                    writer.line("},");
+                });
+                writer.line("}),");
+            }
+            None => writer.line("website: Option::<ProfileWebsite>::None,"),
+        }
     });
     writer.line("},");
 

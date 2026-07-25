@@ -7,8 +7,8 @@ use leptos::prelude::*;
 
 use crate::components::{Container, SectionHeading};
 use crate::cv::{
-    Cv, CvDate, DateRange, DateRangeEnd, Education, Experience, Inline, Location, Month, RichText,
-    SkillGroup, SocialLink, SocialPlatform,
+    Cv, CvDate, DateRange, DateRangeEnd, Education, Experience, Inline, Location, Month,
+    ProfileWebsite, RichText, SkillGroup, SocialLink, SocialPlatform,
 };
 
 /// Public URL copied by Trunk from the synchronized CV artifact directory.
@@ -64,16 +64,34 @@ fn CvProfile(cv: &'static Cv<'static>, pdf_url: Option<&'static str>) -> impl In
                     <a href=email_url aria-label=format!("Email {}", profile.contact.email)>
                         {profile.contact.email.as_ref()}
                     </a>
-                    {(!profile.social_links.is_empty()).then(|| view! {
+                    {(!profile.social_links.is_empty() || profile.website.is_some()).then(|| view! {
                         <ul class="cv-profile-links" aria-label="Professional profiles">
                             {profile.social_links.iter().map(|link| view! {
                                 <li><SocialProfileLink link=link /></li>
                             }).collect_view()}
+                            {profile.website.as_ref().map(|website| view! {
+                                <li><ProfileWebsiteLink website=website /></li>
+                            })}
                         </ul>
                     })}
                 </address>
             </Container>
         </section>
+    }
+}
+
+#[component]
+fn ProfileWebsiteLink(website: &'static ProfileWebsite<'static>) -> impl IntoView {
+    view! {
+        <a
+            href=website.url.as_ref()
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Personal website (opens in a new tab)"
+        >
+            <RichTextView text=&website.label />
+            <span class="sr-only">" (opens in a new tab)"</span>
+        </a>
     }
 }
 

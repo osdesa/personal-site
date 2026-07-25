@@ -16,6 +16,7 @@ static EMPTY_CV: Cv<'static> = Cv {
             email: Cow::Borrowed("test@example.com"),
         },
         social_links: Cow::Borrowed(&[]),
+        website: None,
     },
     education: Cow::Borrowed(&[]),
     experience: Cow::Borrowed(&[]),
@@ -105,6 +106,11 @@ fn generated_projects_are_deliberately_not_rendered_on_the_cv_page() {
 #[test]
 fn generated_links_have_accessible_and_safe_behaviour() {
     let html = render_generated_cv(Some(CV_PDF_URL));
+    let website = CV
+        .profile
+        .website
+        .as_ref()
+        .expect("the synchronized CV publishes a personal website");
 
     assert!(html.contains(&format!("href=\"mailto:{}\"", CV.profile.contact.email)));
     assert!(html.contains(&format!(
@@ -114,6 +120,8 @@ fn generated_links_have_accessible_and_safe_behaviour() {
     assert!(html.contains("target=\"_blank\""));
     assert!(html.contains("rel=\"noreferrer\""));
     assert!(html.contains("opens in a new tab"));
+    assert!(html.contains(&format!("href=\"{}\"", website.url)));
+    assert!(html.contains("aria-label=\"Personal website (opens in a new tab)\""));
 }
 
 #[test]

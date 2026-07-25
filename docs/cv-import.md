@@ -35,7 +35,7 @@ and none for list boundaries). The body is consumed completely in this order:
 
 ```text
 document          = heading education experience projects skills end-document
-heading           = center(name, email-link, linkedin-link, github-link)
+heading           = center(name, email-link, linkedin-link, github-link, website-link?)
 education         = section("Education"), subheading-list(education-entry+)
 education-entry   = resumeSubheading(institution, location, qualification, dates)
 experience        = section("Experience"), subheading-list(experience-entry+)
@@ -48,9 +48,11 @@ bullets           = resumeItemListStart, resumeItem(rich-text)+, resumeItemListE
 ```
 
 The heading must retain the current `center`, `\textbf{\Huge \scshape ...}`,
-line-break, and `\vspace{1pt}` structure. Its first link must be `mailto:` and
-its label must equal the email address. Exactly one LinkedIn and one GitHub
-HTTPS link are required. The Technical Skills section must retain the current
+line-break, and `\vspace{1pt}` structure. Its first link must be `mailto:`; the
+address is taken from that target, while its non-empty authored label may be a
+short value such as `Email`. Exactly one LinkedIn and one GitHub HTTPS link are
+required. One additional HTTPS personal-website link may follow them. The
+Technical Skills section must retain the current
 `itemize[leftmargin=0.15in, label={}]` and `\small{\item{...}}` wrapper.
 
 Locations use `City, Country`; the final comma separates the fields. Date
@@ -88,12 +90,30 @@ line and column diagnostics.
 
 The domain model in `src/cv.rs` is independent of Leptos and the importer. It
 uses `Cow` so parsing can return owned values while generated data can borrow
-static strings and slices. It separates profile/contact/social data, education,
-experience, projects, skills, locations, dates, and safe inline nodes.
+static strings and slices. It separates profile/contact/social data, the
+optional personal website, education, experience, projects, skills, locations,
+dates, and safe inline nodes.
 
 `src/cv_sync/generator.rs` walks that model in source order and writes a
 deterministic `src/generated_cv.rs`. The generated module exports `CV`,
 `SOURCE_TAG`, and `SOURCE_COMMIT_SHA`.
+
+## Test boundaries
+
+Parser grammar and synchronization failure-path tests use the compact
+repository-owned `tests/fixtures/cv/valid.tex` example rather than the
+production CV. The example deliberately exercises every supported section,
+the labelled email, optional website, nested project link, rich text, dates,
+locations and skill groups. Negative tests derive malformed documents from
+that fixture, so a normal wording, role, project or skills update in the real
+CV does not alter parser expectations.
+
+The checked-in production source remains covered at one integration boundary:
+bundle validation verifies its manifest hashes, reparses the synchronized TeX
+and requires regeneration to reproduce `src/generated_cv.rs` byte for byte.
+Transport and transaction tests use the example TeX and a generated minimal
+one-page PDF. This keeps content-independent behavior isolated while retaining
+end-to-end assurance that the published CV bundle is internally consistent.
 
 ## Output representation decision
 
@@ -188,7 +208,8 @@ when the supported upstream grammar or semantic domain changes.
 ## Assumptions and limitations
 
 - Section names and order are fixed and each semantic section must be non-empty.
-- The heading supports one email, LinkedIn, and GitHub only.
+- The heading supports one email, one LinkedIn profile, one GitHub profile and
+  one optional personal website.
 - Project technologies and skill values are comma-separated; commas cannot be
   embedded in one value.
 - Locations split on the final comma and have no richer geographic semantics.

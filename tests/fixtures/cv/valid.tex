@@ -1,0 +1,57 @@
+\documentclass{article}
+
+\newcommand{\resumeItem}[1]{#1}
+\newcommand{\resumeSubheading}[4]{#1 #2 #3 #4}
+\newcommand{\resumeSubSubheading}[2]{#1 #2}
+\newcommand{\resumeProjectHeading}[2]{#1 #2}
+\newcommand{\resumeSubItem}[1]{#1}
+\newcommand{\resumeSubHeadingListStart}{}
+\newcommand{\resumeSubHeadingListEnd}{}
+\newcommand{\resumeItemListStart}{}
+\newcommand{\resumeItemListEnd}{}
+
+\begin{document}
+
+\begin{center}
+    \textbf{\Huge \scshape Example Person} \\ \vspace{1pt}
+    \href{mailto:person@example.test}{\underline{Email}} $|$
+    \href{https://linkedin.com/in/example}{\underline{LinkedIn}} $|$
+    \href{https://github.com/example}{\underline{GitHub}} $|$
+    \href{https://example.test/}{\underline{Website}}
+\end{center}
+
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Example University}{Example City, Example Country}
+      {BSc Example Systems}{Aug. 2020 -- May 2023}
+  \resumeSubHeadingListEnd
+
+\section{Experience}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Software Engineer}{Jan. 2024 -- Present}
+      {Example Organisation}{Example City, Example Country}
+      \resumeItemListStart
+        \resumeItem{Built \textbf{reliable} software with \href{https://example.test/work}{\underline{safe links}}.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+\section{Projects}
+  \resumeSubHeadingListStart
+    \resumeProjectHeading
+      {\textbf{\href{https://example.test/project}{\underline{Example Project}}} $|$ \emph{Rust, WebAssembly}}{Current Project}
+      \resumeItemListStart
+        \resumeItem{Created a deterministic parser fixture with escaped \& structured content.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: Rust, TypeScript} \\
+     \textbf{Tools}{: Git, Docker}
+    }}
+ \end{itemize}
+
+\end{document}

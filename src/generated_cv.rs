@@ -4,13 +4,13 @@ use std::borrow::Cow;
 
 use crate::cv::{
     ContactDetails, Cv, CvDate, DateRange, DateRangeEnd, Education, Experience, Inline, Location,
-    Month, Profile, Project, RichText, SkillGroup, SocialLink, SocialPlatform,
+    Month, Profile, ProfileWebsite, Project, RichText, SkillGroup, SocialLink, SocialPlatform,
 };
 
 /// Upstream semantic tag used to generate [`CV`].
-pub const SOURCE_TAG: &str = "v1.0.1";
+pub const SOURCE_TAG: &str = "v1.0.2";
 /// Immutable upstream commit used to generate [`CV`].
-pub const SOURCE_COMMIT_SHA: &str = "9b7b9ea7a0416f2f091553a2bf12e5469cf6616f";
+pub const SOURCE_COMMIT_SHA: &str = "4725b3f0f5395d901851fc8cf815ea2936e6e6ce";
 
 /// CV data validated and generated from the synchronized LaTeX source.
 #[rustfmt::skip]
@@ -48,6 +48,18 @@ pub static CV: Cv<'static> = Cv {
                 },
             },
         ]),
+        website: Some(ProfileWebsite {
+            url: Cow::Borrowed("https://haydenfarrell.dev/"),
+            label: RichText {
+                nodes: Cow::Borrowed(&[
+                    Inline::Underline(RichText {
+                        nodes: Cow::Borrowed(&[
+                            Inline::Text(Cow::Borrowed("Website")),
+                        ]),
+                    }),
+                ]),
+            },
+        }),
     },
     education: Cow::Borrowed(&[
         Education {
@@ -209,7 +221,18 @@ pub static CV: Cv<'static> = Cv {
                 nodes: Cow::Borrowed(&[
                     Inline::Strong(RichText {
                         nodes: Cow::Borrowed(&[
-                            Inline::Text(Cow::Borrowed("Atlas")),
+                            Inline::Link {
+                                target: Cow::Borrowed("https://github.com/osdesa/Atlas"),
+                                label: RichText {
+                                    nodes: Cow::Borrowed(&[
+                                        Inline::Underline(RichText {
+                                            nodes: Cow::Borrowed(&[
+                                                Inline::Text(Cow::Borrowed("Atlas")),
+                                            ]),
+                                        }),
+                                    ]),
+                                },
+                            },
                         ]),
                     }),
                 ]),
@@ -343,7 +366,8 @@ pub static CV: Cv<'static> = Cv {
         SkillGroup {
             category: Cow::Borrowed("Hobbies"),
             skills: Cow::Borrowed(&[
-                Cow::Borrowed("Climbing/Bouldering"),
+                Cow::Borrowed("Climbing"),
+                Cow::Borrowed("Bouldering"),
                 Cow::Borrowed("Leadership"),
                 Cow::Borrowed("Drones"),
             ]),
