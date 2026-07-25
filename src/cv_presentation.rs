@@ -197,11 +197,13 @@ fn EducationEntry(entry: &'static Education<'static>) -> impl IntoView {
             <div class="timeline-entry__marker" aria-hidden="true"></div>
             <div class="timeline-entry__content">
                 <p class="timeline-entry__period">{format_date_range(entry.dates)}</p>
-                <h3><RichTextView text=&entry.qualification /></h3>
-                <p class="timeline-entry__organisation">
+                <h3>
                     <RichTextView text=&entry.institution />
                     <span aria-hidden="true">" · "</span>
                     {format_location(&entry.location)}
+                </h3>
+                <p class="timeline-entry__detail">
+                    <RichTextView text=&entry.qualification />
                 </p>
             </div>
         </article>

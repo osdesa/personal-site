@@ -204,6 +204,60 @@ test("project images fit within narrow mobile cards", async ({ page }) => {
   }
 });
 
+test("footer notices are grouped under Navigate", async ({ page }) => {
+  await page.goto("/");
+
+  const footerNavigation = page.getByRole("navigation", { name: "Footer navigation" });
+  await expect(footerNavigation.getByRole("link")).toHaveText([
+    "Projects",
+    "CV",
+    "Legal notice",
+    "Privacy notice",
+  ]);
+  await expect(page.getByRole("navigation", { name: "Legal information" })).toHaveCount(0);
+});
+
+test("notice headings have clear separation from their supporting text", async ({ page }) => {
+  for (const path of ["/legal", "/privacy"]) {
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 1440, height: 900 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto(path);
+
+      const heading = await page.locator(".page-hero--compact h1").boundingBox();
+      const lead = await page.locator(".page-hero--compact .page-hero__lead").boundingBox();
+
+      expect(heading).not.toBeNull();
+      expect(lead).not.toBeNull();
+      expect(lead!.y - (heading!.y + heading!.height)).toBeGreaterThanOrEqual(20);
+    }
+  }
+});
+
+test("education keeps source order while promoting institution and location", async ({ page }) => {
+  await page.goto("/cv");
+
+  const educationSection = page.locator(".cv-section").filter({
+    has: page.getByRole("heading", { name: "Education" }),
+  });
+  const educationEntries = educationSection.locator(".timeline-entry");
+
+  await expect(educationEntries.locator("h3")).toHaveText([
+    "University of Nottingham · Nottingham, UK",
+    "Aquinas College · Manchester, UK",
+  ]);
+  await expect(educationEntries.locator(".timeline-entry__detail")).toHaveText([
+    "BSc Computer Science with a Year in Industry (Predicted First-Class Honours)",
+    "Mathematics (A), Computer Science (A), Further Mathematics (A)",
+  ]);
+  await expect(educationEntries.locator(".timeline-entry__period")).toHaveText([
+    "Aug 2023 – May 2027",
+    "Aug 2021 – May 2023",
+  ]);
+});
+
 test.describe("mobile navigation", () => {
   test.use({ viewport: { width: 320, height: 568 } });
 
@@ -227,6 +281,17 @@ test.describe("mobile navigation", () => {
     const closeMenuButton = page.getByRole("button", { name: "Close navigation menu" });
     await expect(closeMenuButton).toHaveAttribute("aria-expanded", "true");
     await expect(mobileNavigation).not.toHaveAttribute("inert", "");
+    const mobileLinkPadding = await mobileNavigation
+      .getByRole("link", { name: "Home" })
+      .evaluate((link) => {
+        const style = getComputedStyle(link);
+        return {
+          left: Number.parseFloat(style.paddingLeft),
+          right: Number.parseFloat(style.paddingRight),
+        };
+      });
+    expect(mobileLinkPadding.left).toBeGreaterThanOrEqual(12);
+    expect(mobileLinkPadding.right).toBeGreaterThanOrEqual(12);
 
     await closeMenuButton.focus();
     await page.keyboard.press("Tab");

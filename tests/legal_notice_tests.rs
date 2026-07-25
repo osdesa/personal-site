@@ -73,3 +73,11 @@ fn legacy_legal_notice_path_has_a_permanent_host_redirect() {
             .any(|line| line == "/legal-notice /legal 301")
     );
 }
+
+#[test]
+fn notice_heroes_use_shared_heading_spacing() {
+    let css = include_str!("../styles/input.css");
+
+    assert!(css.contains(".page-hero--compact h1"));
+    assert!(css.contains("margin-bottom: clamp(1.25rem, 2.5vw, 2rem)"));
+}

@@ -95,3 +95,11 @@ fn project_cards_keep_metadata_at_the_top_links_at_the_bottom_and_media_responsi
     assert!(css.contains("aspect-ratio: 608 / 272"));
     assert!(css.contains("min-height: 0"));
 }
+
+#[test]
+fn projects_page_heading_uses_the_reduced_responsive_scale() {
+    let css = include_str!("../styles/input.css");
+
+    assert!(css.contains("font-size: clamp(3rem, 8vw, 6.5rem)"));
+    assert!(!css.contains("font-size: clamp(3.5rem, 10vw, 8rem)"));
+}
