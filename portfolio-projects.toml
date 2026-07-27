@@ -8,4 +8,5 @@ limit = 4
 fallback_repositories = [
   "osdesa/personal-site",
   "osdesa/Blocky",
+  "osdesa/Atlas",
 ]
