@@ -101,6 +101,16 @@ them in. Projects are sorted newest-first by effective portfolio date, then
 repository creation date, then case-insensitive full repository name. At most
 four are generated. Stars, push time and update time do not affect ordering.
 
+## Test boundaries
+
+Selection, normalization, generation, thumbnail and failure-path tests use
+neutral `example-owner` repositories supplied by in-memory sources. GitHub
+transport tests use a local HTTP server with controlled GraphQL responses; they
+never read the configured account or selected repositories. Presentation tests
+render explicit sample `Project` values. Normalizer and generator tests enforce
+the catalogue's structural guarantees from controlled candidates, so
+repository membership, project wording and list size are not test inputs.
+
 ## Authentication and automation
 
 Create a fine-grained personal access token with access only to the candidate
@@ -121,9 +131,13 @@ generated-data pull request.
 
 `.github/workflows/sync-projects.yml` runs daily at 05:41 UTC and on manual
 dispatch. It generates all candidate bytes in memory, validates them, performs
-an atomic no-op-aware replacement, runs the full Rust quality suite, and opens
-or updates `automation/project-sync` only when data changed. A fetch or
-validation failure exits before replacement, preserving the previous valid
+an atomic no-op-aware replacement, normalizes the generated module with the
+repository's declared `rustfmt` component and checked-in width configuration,
+runs the full Rust quality suite, and opens or updates
+`automation/project-sync` only when data changed. Formatting normalization keeps
+remote metadata shapes from causing a generated-code formatting failure, while
+the following format check still protects every other Rust source file. A fetch
+or validation failure exits before replacement, preserving the previous valid
 site data. The resulting pull request triggers normal CI; merging it triggers
 the production build path.
 

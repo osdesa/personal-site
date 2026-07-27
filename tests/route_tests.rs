@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use personal_site::routes::{NAVIGATION_ROUTES, PUBLIC_ROUTES, metadata_for_path};
+use personal_site::routes::{NAVIGATION_ROUTES, PUBLIC_ROUTES, SITE_NAME, metadata_for_path};
 
 #[test]
 fn navigation_routes_are_unique_and_absolute() {
@@ -22,7 +22,7 @@ fn navigation_routes_are_unique_and_absolute() {
 #[test]
 fn every_public_route_has_a_specific_title() {
     for route in PUBLIC_ROUTES {
-        assert!(route.title.contains("Hayden Farrell"));
+        assert!(route.title.contains(SITE_NAME));
         assert_eq!(route.robots, None);
     }
     let missing = metadata_for_path("/missing");

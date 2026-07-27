@@ -6,7 +6,8 @@ use std::{
 };
 
 use personal_site::cv_sync::{
-    CvBundleStore, CvSyncError, GitHubCvSource, SyncOutcome, synchronize,
+    CvBundleStore, CvSyncError, GitHubCvSource, PDF_FILENAME, SyncOutcome, TEX_FILENAME,
+    TEX_REPOSITORY_PATH, synchronize,
 };
 use tempfile::TempDir;
 
@@ -14,9 +15,11 @@ mod support;
 
 const SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const TEX: &str = include_str!("fixtures/cv/valid.tex");
+const TEST_OWNER: &str = "example-owner";
+const TEST_REPOSITORY: &str = "resume-source";
 
 struct Response {
-    expected_target: &'static str,
+    expected_target: String,
     status: &'static str,
     content_type: &'static str,
     body: Vec<u8>,
@@ -68,27 +71,34 @@ fn github_adapter_lists_tags_and_downloads_both_files_by_commit_sha() {
     );
     let (base_url, server) = local_server(vec![
         Response {
-            expected_target: "/repos/osdesa/cv/tags?per_page=100&page=1",
+            expected_target: format!(
+                "/repos/{TEST_OWNER}/{TEST_REPOSITORY}/tags?per_page=100&page=1"
+            ),
             status: "200 OK",
             content_type: "application/json",
             body: tags.into_bytes(),
         },
         Response {
-            expected_target: "/osdesa/cv/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Hayden-Farrell-CV.tex",
+            expected_target: format!("/{TEST_OWNER}/{TEST_REPOSITORY}/{SHA}/{TEX_FILENAME}"),
             status: "200 OK",
             content_type: "text/plain",
             body: TEX.as_bytes().to_vec(),
         },
         Response {
-            expected_target: "/osdesa/cv/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Hayden-Farrell-CV.pdf",
+            expected_target: format!("/{TEST_OWNER}/{TEST_REPOSITORY}/{SHA}/{PDF_FILENAME}"),
             status: "200 OK",
             content_type: "application/pdf",
             body: support::valid_pdf(),
         },
     ]);
-    let source =
-        GitHubCvSource::with_base_urls("osdesa", "cv", &base_url, &base_url, Some("test-token"))
-            .unwrap();
+    let source = GitHubCvSource::with_base_urls(
+        TEST_OWNER,
+        TEST_REPOSITORY,
+        &base_url,
+        &base_url,
+        Some("test-token"),
+    )
+    .unwrap();
     let root = TempDir::new().unwrap();
 
     let outcome = synchronize(&source, &CvBundleStore::new(root.path())).unwrap();
@@ -102,7 +112,7 @@ fn github_adapter_lists_tags_and_downloads_both_files_by_commit_sha() {
         }
     );
     assert_eq!(
-        fs::read(root.path().join("public/cv/Hayden-Farrell-CV.tex")).unwrap(),
+        fs::read(root.path().join(TEX_REPOSITORY_PATH)).unwrap(),
         TEX.as_bytes()
     );
 }
@@ -110,13 +120,14 @@ fn github_adapter_lists_tags_and_downloads_both_files_by_commit_sha() {
 #[test]
 fn github_http_failure_is_reported_before_any_local_files_are_created() {
     let (base_url, server) = local_server(vec![Response {
-        expected_target: "/repos/osdesa/cv/tags?per_page=100&page=1",
+        expected_target: format!("/repos/{TEST_OWNER}/{TEST_REPOSITORY}/tags?per_page=100&page=1"),
         status: "503 Service Unavailable",
         content_type: "application/json",
         body: br#"{"message":"try later"}"#.to_vec(),
     }]);
     let source =
-        GitHubCvSource::with_base_urls("osdesa", "cv", &base_url, &base_url, None).unwrap();
+        GitHubCvSource::with_base_urls(TEST_OWNER, TEST_REPOSITORY, &base_url, &base_url, None)
+            .unwrap();
     let root = TempDir::new().unwrap();
 
     let result = synchronize(&source, &CvBundleStore::new(root.path()));

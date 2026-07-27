@@ -1,7 +1,7 @@
 {
   "name": "personal-site",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "scripts": {
     "css:build": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --minify",
     "css:watch": "tailwindcss -i ./styles/input.css -o ./styles/generated.css --watch",

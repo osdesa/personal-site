@@ -30,6 +30,11 @@ generated CV identity and links. It excludes email and identifies the canonical
 site URL. Like route metadata, it is not a guarantee for a crawler that reads
 only initial HTML.
 
+Browser and native metadata tests assert schema, HTTPS, uniqueness, route and
+privacy contracts using typed route constants or values discovered from the
+rendered document. They do not duplicate the current generated name, email,
+CV wording, project titles or PDF filename.
+
 The mounted application updates canonical and Open Graph URLs for browser and
 JavaScript-capable crawlers. The static initial document stays generic for all
 routes: a pure CSR bundle cannot make canonical metadata correct for every
@@ -116,7 +121,9 @@ data. Project artwork is controlled local content with explicit dimensions,
 asynchronous decoding and a reserved aspect ratio. If a project image fails or
 is slow, the card's title and written project content remain usable. The CV
 PDF is an optional download; a failed or slow request does not hide the full
-web CV. Browser regression tests exercise both behaviours.
+web CV. Controlled component tests verify that project text is independent of
+its image, while the browser suite intercepts the discovered PDF URL and
+confirms the rendered CV remains available.
 
 ### Local Windows note
 

@@ -295,7 +295,7 @@ fn imported_links_require_complete_safe_destinations() {
 
     let encoded_mailto_headers = replace_mailto_target(
         SOURCE,
-        "mailto:hayden@example.com%0d%0abcc:unexpected@example.com",
+        "mailto:candidate@example.test%0d%0abcc:unexpected@example.test",
     );
     assert!(parse_cv(&encoded_mailto_headers).is_err());
 }

@@ -7,7 +7,12 @@ use personal_site::cv_presentation::{
     CV_PDF_FILENAME, CV_PDF_URL, format_date_range, format_location, render_cv_document,
     render_rich_text,
 };
-use personal_site::generated_cv::{CV, SOURCE_COMMIT_SHA, SOURCE_TAG};
+
+#[path = "support/sample_cv.rs"]
+mod sample_cv;
+
+const SAMPLE_TAG: &str = "v9.8.7";
+const SAMPLE_COMMIT_SHA: &str = "abcdef0123456789abcdef0123456789abcdef01";
 
 static EMPTY_CV: Cv<'static> = Cv {
     profile: Profile {
@@ -55,23 +60,29 @@ static SAFE_INLINE_TEXT: RichText<'static> = RichText {
     ]),
 };
 
-fn render_generated_cv(pdf_url: Option<&'static str>) -> String {
-    render_cv_document(Some(&CV), SOURCE_TAG, SOURCE_COMMIT_SHA, pdf_url)
+fn render_sample_cv(pdf_url: Option<&'static str>) -> String {
+    render_cv_document(
+        Some(sample_cv::sample_cv()),
+        SAMPLE_TAG,
+        SAMPLE_COMMIT_SHA,
+        pdf_url,
+    )
 }
 
 #[test]
-fn generated_stage_two_data_renders_every_major_cv_section() {
-    let html = render_generated_cv(Some(CV_PDF_URL));
+fn supplied_cv_data_renders_every_major_displayed_section() {
+    let cv = sample_cv::sample_cv();
+    let html = render_sample_cv(Some(CV_PDF_URL));
 
     for expected in [
-        CV.profile.full_name.as_ref(),
-        CV.profile.contact.email.as_ref(),
+        cv.profile.full_name.as_ref(),
+        cv.profile.contact.email.as_ref(),
         "Professional experience",
         "Education",
         "Technical skills",
         "CV version",
-        SOURCE_TAG,
-        &SOURCE_COMMIT_SHA[..7],
+        SAMPLE_TAG,
+        &SAMPLE_COMMIT_SHA[..7],
     ] {
         assert!(
             html.contains(expected),
@@ -96,26 +107,29 @@ fn optional_sections_and_profile_links_are_omitted_when_empty() {
 }
 
 #[test]
-fn generated_projects_are_deliberately_not_rendered_on_the_cv_page() {
-    let html = render_generated_cv(Some(CV_PDF_URL));
+fn supplied_cv_projects_are_deliberately_not_rendered_on_the_cv_page() {
+    let cv = sample_cv::sample_cv();
+    let html = render_sample_cv(Some(CV_PDF_URL));
 
-    assert!(!CV.projects.is_empty());
+    assert!(!cv.projects.is_empty());
     assert!(!html.contains("<h2>Projects</h2>"));
+    assert!(!html.contains("CV-only example project"));
 }
 
 #[test]
-fn generated_links_have_accessible_and_safe_behaviour() {
-    let html = render_generated_cv(Some(CV_PDF_URL));
-    let website = CV
+fn supplied_links_have_accessible_and_safe_behaviour() {
+    let cv = sample_cv::sample_cv();
+    let html = render_sample_cv(Some(CV_PDF_URL));
+    let website = cv
         .profile
         .website
         .as_ref()
-        .expect("the synchronized CV publishes a personal website");
+        .expect("the controlled fixture includes a personal website");
 
-    assert!(html.contains(&format!("href=\"mailto:{}\"", CV.profile.contact.email)));
+    assert!(html.contains(&format!("href=\"mailto:{}\"", cv.profile.contact.email)));
     assert!(html.contains(&format!(
         "aria-label=\"Email {}\"",
-        CV.profile.contact.email
+        cv.profile.contact.email
     )));
     assert!(html.contains("target=\"_blank\""));
     assert!(html.contains("rel=\"noreferrer\""));
@@ -126,16 +140,27 @@ fn generated_links_have_accessible_and_safe_behaviour() {
 
 #[test]
 fn pdf_link_downloads_the_synchronised_artifact_and_has_a_fallback() {
-    let available = render_generated_cv(Some(CV_PDF_URL));
+    let available = render_sample_cv(Some(CV_PDF_URL));
     assert!(available.contains(&format!("href=\"{CV_PDF_URL}\"")));
     assert!(available.contains(&format!("download=\"{CV_PDF_FILENAME}\"")));
     assert!(available.contains("aria-label=\"Download CV as a PDF\""));
 
-    let unavailable = render_generated_cv(None);
+    let unavailable = render_sample_cv(None);
     assert!(unavailable.contains("PDF unavailable"));
     assert!(unavailable.contains("role=\"status\""));
     assert!(unavailable.contains("aria-disabled=\"true\""));
     assert!(!unavailable.contains(&format!("href=\"{CV_PDF_URL}\"")));
+}
+
+#[test]
+fn education_entries_preserve_the_supplied_order() {
+    let html = render_sample_cv(Some(CV_PDF_URL));
+    let first = html.find("First Example Institute").unwrap();
+    let second = html.find("Second Example Institute").unwrap();
+
+    assert!(first < second);
+    assert!(html.contains("First City, Example Country"));
+    assert!(html.contains("Second City, Example Country"));
 }
 
 #[test]

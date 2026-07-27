@@ -4,8 +4,8 @@ fn evidence(kind: AutomationKind) -> PullRequestEvidence<'static> {
     PullRequestEvidence {
         head_branch: kind.branch(),
         base_branch: "main",
-        head_repository: "osdesa/personal-site",
-        repository: "osdesa/personal-site",
+        head_repository: "example-owner/example-site",
+        repository: "example-owner/example-site",
         author: "portfolio-sync-bot",
         trusted_author: "portfolio-sync-bot",
         marker_present: true,
@@ -48,7 +48,7 @@ fn unrelated_branches_forks_wrong_base_and_untrusted_markers_are_rejected() {
     ));
 
     let mut fork = evidence(AutomationKind::Cv);
-    fork.head_repository = "contributor/personal-site";
+    fork.head_repository = "contributor/example-site";
     assert!(!is_auto_merge_eligible(AutomationKind::Cv, &fork));
 
     let mut wrong_base = evidence(AutomationKind::Cv);

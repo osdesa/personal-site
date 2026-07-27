@@ -40,11 +40,17 @@ async function main() {
     "favicon.svg",
     "_headers",
     "_redirects",
-    "cv/Hayden-Farrell-CV.pdf",
     "images/project-default.svg",
   ]) {
     assert(names.includes(expected), `missing required production asset: ${expected}`);
   }
+  const publishedPdfs = names.filter(
+    (name) => name.startsWith("cv/") && name.endsWith(".pdf"),
+  );
+  assert(
+    publishedPdfs.length === 1,
+    `production output must contain exactly one CV PDF, found ${publishedPdfs.length}`,
+  );
   assert(names.some((name) => name.endsWith(".css")), "missing generated CSS asset");
   assert(names.some((name) => name.endsWith(".js")), "missing generated JavaScript asset");
   assert(names.some((name) => name.endsWith(".wasm")), "missing generated WebAssembly asset");

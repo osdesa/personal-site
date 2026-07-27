@@ -1,7 +1,17 @@
 use leptos::prelude::*;
-use personal_site::generated_cv::CV;
 use personal_site::pages::{LegalNoticePage, PrivacyNoticePage};
 use personal_site::routes::{LEGAL_NOTICE, NAVIGATION_ROUTES, PRIVACY_NOTICE, metadata_for_path};
+
+fn assert_has_non_empty_mailto(html: &str) {
+    let target = html
+        .split_once("href=\"mailto:")
+        .and_then(|(_, remainder)| remainder.split_once('"'))
+        .map(|(target, _)| target)
+        .expect("notice must publish a mailto contact link");
+
+    assert!(!target.trim().is_empty());
+    assert!(target.contains('@'));
+}
 
 #[test]
 fn legal_notice_renders_the_requested_terms_and_ownership_boundaries() {
@@ -17,13 +27,13 @@ fn legal_notice_renders_the_requested_terms_and_ownership_boundaries() {
         "Nothing on this website constitutes professional advice or creates any contractual or professional relationship.",
         "Disclaimer and liability",
         "Last updated",
-        &format!("href=\"mailto:{}\"", CV.profile.contact.email),
     ] {
         assert!(
             html.contains(expected),
             "missing legal notice content: {expected}"
         );
     }
+    assert_has_non_empty_mailto(&html);
 }
 
 #[test]
@@ -42,13 +52,13 @@ fn privacy_notice_renders_controller_hosting_and_rights_information() {
         "Your rights",
         "Information Commissioner's Office",
         "Last updated",
-        &format!("href=\"mailto:{}\"", CV.profile.contact.email),
     ] {
         assert!(
             html.contains(expected),
             "missing privacy notice content: {expected}"
         );
     }
+    assert_has_non_empty_mailto(&html);
 }
 
 #[test]

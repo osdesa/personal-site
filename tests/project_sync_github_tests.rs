@@ -59,7 +59,7 @@ fn github_adapter_reads_and_paginates_the_named_portfolio_list() {
             body: r#"{
                 "data":{"viewer":{"lists":{
                     "nodes":[{"id":"list-id","name":"portfolio","items":{
-                        "nodes":[{"nameWithOwner":"osdesa/personal-site"}],
+                        "nodes":[{"nameWithOwner":"example-owner/first-project"}],
                         "pageInfo":{"hasNextPage":true,"endCursor":"item-cursor"}
                     }}],
                     "pageInfo":{"hasNextPage":false,"endCursor":"list-cursor"}
@@ -69,14 +69,14 @@ fn github_adapter_reads_and_paginates_the_named_portfolio_list() {
         Response {
             body: r#"{
                 "data":{"node":{"items":{
-                    "nodes":[{"nameWithOwner":"osdesa/Blocky"}],
+                    "nodes":[{"nameWithOwner":"example-owner/second-project"}],
                     "pageInfo":{"hasNextPage":false,"endCursor":"done"}
                 }}}
             }"#,
         },
     ]);
     let source = GitHubProjectSource::with_base_url(
-        "osdesa",
+        "example-owner",
         ".github/portfolio.toml",
         base_url,
         Some("test-token"),
@@ -88,7 +88,13 @@ fn github_adapter_reads_and_paginates_the_named_portfolio_list() {
         .unwrap();
 
     server.join().unwrap();
-    assert_eq!(repositories, ["osdesa/personal-site", "osdesa/Blocky"]);
+    assert_eq!(
+        repositories,
+        [
+            "example-owner/first-project",
+            "example-owner/second-project"
+        ]
+    );
 }
 
 #[test]
@@ -97,7 +103,7 @@ fn graphql_errors_are_reported_instead_of_switching_selection_sources() {
         body: r#"{"errors":[{"message":"starring permission required"}]}"#,
     }]);
     let source = GitHubProjectSource::with_base_url(
-        "osdesa",
+        "example-owner",
         ".github/portfolio.toml",
         base_url,
         Some("test-token"),

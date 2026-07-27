@@ -238,11 +238,11 @@ than browser markup snapshots:
 
 - valid and unique project identifiers
 - required content and HTTPS project links
-- generated profile and every major CV section in production Leptos markup
+- controlled profile data and every major CV section in production Leptos markup
 - conditional sections, PDF/data fallback states and download behaviour
 - safe inline formatting, escaping, link policy and accessible link context
 - date/location presentation and responsive/focus styling contracts
-- featured-project selection
+- named-list, topic and allowlist project selection
 - unique internal routes and page titles
 - semantic tag selection, manifest and artifact validation
 - complete fixture-driven CV parsing, typed semantic values and nested safe
@@ -254,19 +254,26 @@ than browser markup snapshots:
   and rollback paths across all four committed paths
 - integrity of the checked-in CV bundle against its manifest
 
-The parser, transport and transaction suites use a synthetic example CV and a
-minimal generated PDF so they test the documented grammar and synchronization
-behavior rather than Hayden's current wording. The final manifest-integrity
-test deliberately retains the production attachment: it reparses and
-regenerates the checked-in bundle to prove that the published source, PDF,
-typed data and provenance belong together.
+Parser, transport, transaction and presentation suites use a synthetic example
+CV, a separately constructed domain fixture, neutral repository identifiers and
+a minimal generated PDF. Assertions are based on controlled inputs and public
+behaviour rather than current upstream wording, project names, repository
+membership, education entries, versions or filenames.
 
-CI additionally compiles every target with warnings denied and builds the actual
-Wasm application. Playwright serves the built static SPA, scans the home,
-projects, CV, legal, privacy and not-found routes with axe, and checks the
-mobile menu's keyboard, focus, overflow and reduced-motion behaviour. The scheduled CV
-workflow repeats the native quality suite before opening an artifact update pull
-request.
+Generated project constraints are exercised at the normalizer/generator
+boundary with controlled candidates, so an empty or changed production
+selection does not redefine test behaviour. The one manifest-integrity test
+deliberately retains the production attachment, but asserts no CV facts: it
+reparses and regenerates the bundle to prove only that the published source,
+PDF, typed data and provenance belong together.
+
+CI additionally compiles every target with warnings denied and builds the
+actual Wasm application. Playwright serves the built static SPA, scans the home,
+projects, CV, legal, privacy and not-found routes with axe, and checks metadata,
+the mobile menu's keyboard behaviour, focus, overflow and reduced motion. It
+does not duplicate current generated CV or repository content. The scheduled CV
+workflow repeats the native quality suite before opening an artifact update
+pull request.
 
 `scripts/validate-static-output.mjs` checks the release directory after Trunk
 builds it. It verifies crawler files, controlled static assets, the CV PDF,

@@ -1,19 +1,48 @@
 use leptos::prelude::*;
 use personal_site::components::ProjectCard;
-use personal_site::generated_projects::PROJECTS;
 use personal_site::projects::{Project, ProjectVisibility};
 
 #[test]
-fn generated_projects_render_through_the_shared_card_component() {
+fn projects_render_through_the_shared_card_component() {
+    let projects = [
+        Project {
+            id: "active-project",
+            repository: "example-owner/active-project",
+            title: "Active example",
+            summary: "An active project supplied by the test.",
+            visibility: ProjectVisibility::Public,
+            project_date: "2030-01-01",
+            status: Some("Active"),
+            technologies: &["Example language"],
+            highlights: &["An example highlight."],
+            image_url: "/images/project-default.svg",
+            repository_url: Some("https://example.test/active-project"),
+            demo_url: None,
+        },
+        Project {
+            id: "completed-project",
+            repository: "example-owner/completed-project",
+            title: "Completed example",
+            summary: "A completed project supplied by the test.",
+            visibility: ProjectVisibility::Public,
+            project_date: "2029-01-01",
+            status: Some("Completed"),
+            technologies: &["Example tool"],
+            highlights: &[],
+            image_url: "/images/project-default.svg",
+            repository_url: None,
+            demo_url: Some("https://example.test/completed-project"),
+        },
+    ];
     let html = view! {
         <div>
-            {PROJECTS.iter().map(|project| view! {
+            {projects.iter().map(|project| view! {
                 <ProjectCard project=*project />
             }).collect_view()}
         </div>
     }
     .to_html();
-    for project in PROJECTS {
+    for project in projects {
         assert!(html.contains(project.title));
         assert!(html.contains(project.summary));
     }
@@ -27,7 +56,7 @@ fn generated_projects_render_through_the_shared_card_component() {
 fn hidden_private_repository_has_indicator_and_no_broken_link() {
     let project = Project {
         id: "private",
-        repository: "osdesa/private",
+        repository: "example-owner/private",
         title: "Private Project",
         summary: "Public portfolio description.",
         visibility: ProjectVisibility::Private,
@@ -50,7 +79,7 @@ fn hidden_private_repository_has_indicator_and_no_broken_link() {
 fn project_with_all_links_suppressed_does_not_render_an_empty_link_group() {
     let project = Project {
         id: "unlinked",
-        repository: "osdesa/unlinked",
+        repository: "example-owner/unlinked",
         title: "Unlinked Project",
         summary: "A project intentionally presented without external links.",
         visibility: ProjectVisibility::Public,

@@ -124,7 +124,7 @@ fn update_downloads_from_the_selected_commit_and_commits_one_valid_bundle() {
     assert!(generated.contains("pub const SOURCE_TAG: &str = \"v1.10.0\";"));
     assert!(generated.contains(&format!("pub const SOURCE_COMMIT_SHA: &str = \"{SHA_B}\";")));
     assert_eq!(
-        fs::read(root.path().join("public/cv/Hayden-Farrell-CV.tex")).unwrap(),
+        fs::read(root.path().join(TEX_REPOSITORY_PATH)).unwrap(),
         tex("new")
     );
 }
@@ -262,11 +262,7 @@ fn moved_tag_and_version_rollback_are_rejected_without_downloads() {
 fn corrupted_current_bundle_blocks_even_an_unchanged_tag() {
     let root = TempDir::new().unwrap();
     commit_bundle(root.path(), "v1.0.0", SHA_A, tex("current"));
-    fs::write(
-        root.path().join("public/cv/Hayden-Farrell-CV.tex"),
-        tex("tampered"),
-    )
-    .unwrap();
+    fs::write(root.path().join(TEX_REPOSITORY_PATH), tex("tampered")).unwrap();
     let source = FakeSource::new(vec![tag("v1.0.0", SHA_A)]);
 
     assert!(matches!(
@@ -285,8 +281,5 @@ fn checked_in_cv_bundle_matches_its_provenance_manifest() {
         .unwrap()
         .expect("the repository must contain a synchronized CV manifest");
 
-    assert_eq!(manifest.repository, "osdesa/cv");
-    assert_eq!(manifest.source.path, TEX_REPOSITORY_PATH);
-    assert_eq!(manifest.pdf.path, PDF_REPOSITORY_PATH);
-    assert_eq!(manifest.generated.path, GENERATED_CV_PATH);
+    assert!(manifest.validate_metadata().is_ok());
 }
