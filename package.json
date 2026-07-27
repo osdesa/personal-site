@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.0",
     "@tailwindcss/cli": "4.3.3",
     "lighthouse": "13.4.1",
     "tailwindcss": "4.3.3"
