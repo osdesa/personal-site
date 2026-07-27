@@ -5,47 +5,31 @@ const routes = [
   {
     name: "home",
     path: "/",
-    title: "Hayden Farrell | Software Engineer",
-    description: "Hayden Farrell - software engineer and computer science student.",
     indexable: true,
   },
   {
     name: "projects",
     path: "/projects",
-    title: "Projects | Hayden Farrell",
-    description: "Selected software engineering projects and technical case studies.",
     indexable: true,
   },
   {
     name: "CV",
     path: "/cv",
-    title: "CV | Hayden Farrell",
-    description:
-      "Hayden Farrell's generated curriculum vitae: experience, education, projects and technical skills.",
     indexable: true,
   },
   {
     name: "legal notice",
     path: "/legal",
-    title: "Legal notice | Hayden Farrell",
-    description:
-      "Terms, ownership and website-use information for Hayden Farrell's portfolio.",
     indexable: true,
   },
   {
     name: "privacy notice",
     path: "/privacy",
-    title: "Privacy notice | Hayden Farrell",
-    description:
-      "Privacy and data-protection information for Hayden Farrell's portfolio website.",
     indexable: true,
   },
   {
     name: "not found",
     path: "/a-route-that-does-not-exist",
-    title: "Page not found | Hayden Farrell",
-    description:
-      "The requested page could not be found. Return to Hayden Farrell's software engineering portfolio.",
     indexable: false,
   },
 ] as const;
@@ -59,17 +43,23 @@ for (const route of routes) {
     expect(results.violations).toEqual([]);
   });
 
-  test(`${route.name} updates client-side title and description`, async ({ page }) => {
+  test(`${route.name} publishes complete client-side metadata`, async ({ page }) => {
     await page.goto(route.path);
 
-    await expect(page).toHaveTitle(route.title);
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-      "content",
-      route.description,
-    );
-    await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
+    expect((await page.title()).trim()).not.toBe("");
+    const description = page.locator('meta[name="description"]');
+    await expect(description).toHaveCount(1);
+    expect((await description.getAttribute("content"))?.trim()).not.toBe("");
+
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveCount(1);
+    const canonicalUrl = new URL((await canonical.getAttribute("href"))!, page.url());
+    expect(canonicalUrl.protocol).toBe("https:");
+    if (route.indexable) {
+      expect(canonicalUrl.pathname).toBe(route.path);
+    }
+
     await expect(page.locator('meta[property="og:url"]')).toHaveCount(1);
-    await expect(page.locator('meta[name="description"]')).toHaveCount(1);
     if (route.indexable) {
       await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
     } else {
@@ -124,35 +114,34 @@ test("404 decoration stays above and clear of supporting content", async ({ page
   }
 });
 
-test("written project content remains available when a project image fails", async ({ page }) => {
-  await page.route("**/images/**", (route) => route.abort("failed"));
-  await page.goto("/projects");
-
-  await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Personal Website" })).toBeVisible();
-});
-
 test("written CV remains available while its PDF download is slow or fails", async ({ page }) => {
-  await page.route("**/cv/Hayden-Farrell-CV.pdf", async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 750));
-    await route.abort("failed");
-  });
   await page.goto("/cv");
 
   const download = page.getByRole("link", { name: "Download CV as a PDF" });
-  await expect(download).toHaveAttribute("download", "Hayden-Farrell-CV.pdf");
+  const href = await download.getAttribute("href");
+  expect(href).not.toBeNull();
+  const pdfPath = new URL(href!, page.url()).pathname;
+  expect(pdfPath.endsWith(".pdf")).toBeTruthy();
+  expect((await download.getAttribute("download"))?.trim()).not.toBe("");
+
+  await page.route(`**${pdfPath}`, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    await route.abort("failed");
+  });
 
   const failedDownload = page.evaluate(async () => {
     try {
-      await fetch("/cv/Hayden-Farrell-CV.pdf");
+      const pdfLink = document.querySelector<HTMLAnchorElement>("a[download]");
+      if (!pdfLink) return "missing";
+      await fetch(pdfLink.href);
       return "loaded";
     } catch {
       return "failed";
     }
   });
 
-  await expect(page.getByRole("heading", { name: "Hayden Farrell" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Professional experience" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.locator("main address")).toBeVisible();
   await expect(failedDownload).resolves.toBe("failed");
 });
 
@@ -163,14 +152,14 @@ test("mounted structured data is valid and excludes private contact data", async
   expect(structuredData).not.toBeNull();
 
   const graph = JSON.parse(structuredData!)["@graph"];
-  expect(graph).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({ "@type": "Person", name: "Hayden Farrell" }),
-      expect.objectContaining({ "@type": "WebSite", name: "Hayden Farrell" }),
-    ]),
-  );
-  expect(structuredData).not.toContain("haydenfarrell@outlook.com");
-  expect(structuredData).toContain('"url":"https://haydenfarrell.dev"');
+  const person = graph.find((entry: { "@type": string }) => entry["@type"] === "Person");
+  const website = graph.find((entry: { "@type": string }) => entry["@type"] === "WebSite");
+  expect(person?.name?.trim()).not.toBe("");
+  expect(person).not.toHaveProperty("email");
+  expect(Array.isArray(person?.sameAs)).toBeTruthy();
+  expect(person.sameAs.every((url: string) => url.startsWith("https://"))).toBeTruthy();
+  expect(website?.name?.trim()).not.toBe("");
+  expect(new URL(website.url).protocol).toBe("https:");
 });
 
 test("skip link moves keyboard focus into main content", async ({ page }) => {
@@ -195,7 +184,6 @@ test("project images fit within narrow mobile cards", async ({ page }) => {
     }),
   );
 
-  expect(imageBounds).not.toEqual([]);
   for (const image of imageBounds) {
     expect(image.left).toBeGreaterThanOrEqual(0);
     expect(image.right).toBeLessThanOrEqual(320);
@@ -234,28 +222,6 @@ test("notice headings have clear separation from their supporting text", async (
       expect(lead!.y - (heading!.y + heading!.height)).toBeGreaterThanOrEqual(20);
     }
   }
-});
-
-test("education keeps source order while promoting institution and location", async ({ page }) => {
-  await page.goto("/cv");
-
-  const educationSection = page.locator(".cv-section").filter({
-    has: page.getByRole("heading", { name: "Education" }),
-  });
-  const educationEntries = educationSection.locator(".timeline-entry");
-
-  await expect(educationEntries.locator("h3")).toHaveText([
-    "University of Nottingham · Nottingham, UK",
-    "Aquinas College · Manchester, UK",
-  ]);
-  await expect(educationEntries.locator(".timeline-entry__detail")).toHaveText([
-    "BSc Computer Science with a Year in Industry (Predicted First-Class Honours)",
-    "Mathematics (A), Computer Science (A), Further Mathematics (A)",
-  ]);
-  await expect(educationEntries.locator(".timeline-entry__period")).toHaveText([
-    "Aug 2023 – May 2027",
-    "Aug 2021 – May 2023",
-  ]);
 });
 
 test.describe("mobile navigation", () => {

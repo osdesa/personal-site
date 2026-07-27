@@ -115,6 +115,13 @@ Transport and transaction tests use the example TeX and a generated minimal
 one-page PDF. This keeps content-independent behavior isolated while retaining
 end-to-end assurance that the published CV bundle is internally consistent.
 
+Presentation tests construct a separate typed sample `Cv` with neutral values.
+Browser assertions discover the published PDF link and validate semantic page
+behaviour without naming the current person, roles, institutions, projects,
+version or artifact filename. The production-bundle boundary asserts only
+manifest and regeneration consistency; it does not turn upstream CV facts into
+test expectations.
+
 ## Output representation decision
 
 The chosen representation is checked-in Rust source containing a

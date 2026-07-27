@@ -1,0 +1,2 @@
+# Keep generated-code layout and rustfmt's validation contract aligned.
+max_width = 100

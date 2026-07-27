@@ -52,6 +52,9 @@ jobs:
           PORTFOLIO_GITHUB_TOKEN: ${{ secrets.PORTFOLIO_GITHUB_TOKEN }}
         run: cargo run --locked --release --features project-sync --bin sync-projects -- --root "$GITHUB_WORKSPACE"
 
+      - name: Normalize synchronized Rust formatting
+        run: rustfmt --edition 2024 src/generated_projects.rs
+
       - name: Verify synchronized repository
         run: |
           cargo fmt --check

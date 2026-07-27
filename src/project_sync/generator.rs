@@ -2,6 +2,8 @@ use std::fmt::Write;
 
 use super::NormalizedProject;
 
+const RUSTFMT_MAX_WIDTH: usize = 100;
+
 /// Generates deterministic, borrowed Rust data for the website runtime.
 #[must_use]
 pub fn generate_projects_module(projects: &[NormalizedProject]) -> Vec<u8> {
@@ -72,9 +74,9 @@ fn slice_field(output: &mut String, name: &str, values: &[String]) {
         .join(", ");
     let inline_field = format!("        {name}: &[{inline_values}],");
 
-    // Keep a margin below rustfmt's wrapping limit so generated output stays
-    // stable when a project contains a moderately long technology list.
-    if inline_field.chars().count() <= 88 {
+    // Match the repository's rustfmt width so generated arrays are written in
+    // the same shape that `cargo fmt` expects.
+    if inline_field.chars().count() <= RUSTFMT_MAX_WIDTH {
         writeln!(output, "{inline_field}").expect("writing to a string cannot fail");
         return;
     }

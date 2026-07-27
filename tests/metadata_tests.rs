@@ -2,24 +2,25 @@ use std::fs;
 
 use personal_site::components::structured_data_json;
 use personal_site::routes::{
-    HOME, PRODUCTION_ORIGIN, PUBLIC_ROUTES, SITE_DESCRIPTION, SITE_NAME, canonical_url_for_path,
-    social_image_url,
+    HOME, PRODUCTION_ORIGIN, PUBLIC_ROUTES, SITE_DESCRIPTION, SITE_NAME, SOCIAL_IMAGE_PATH,
+    canonical_url_for_path, social_image_url,
 };
+use serde_json::Value;
 
 #[test]
 fn initial_document_has_truthful_site_wide_share_metadata() {
     let document = include_str!("../index.html");
 
     for expected in [
-        "id=\"site-canonical\"",
-        "id=\"site-og-url\"",
-        "<meta property=\"og:type\" content=\"website\" />",
-        "<meta property=\"og:site_name\" content=\"Hayden Farrell\" />",
-        "<meta name=\"twitter:card\" content=\"summary\" />",
-        "<meta name=\"color-scheme\" content=\"dark\" />",
+        "id=\"site-canonical\"".to_owned(),
+        "id=\"site-og-url\"".to_owned(),
+        "<meta property=\"og:type\" content=\"website\" />".to_owned(),
+        format!("<meta property=\"og:site_name\" content=\"{SITE_NAME}\" />"),
+        "<meta name=\"twitter:card\" content=\"summary\" />".to_owned(),
+        "<meta name=\"color-scheme\" content=\"dark\" />".to_owned(),
     ] {
         assert!(
-            document.contains(expected),
+            document.contains(&expected),
             "missing static metadata: {expected}"
         );
     }
@@ -67,17 +68,16 @@ fn static_document_has_canonical_production_metadata() {
 
 #[test]
 fn canonical_urls_are_derived_from_the_one_typed_origin() {
-    assert_eq!(PRODUCTION_ORIGIN.as_str(), "https://haydenfarrell.dev");
+    let origin = PRODUCTION_ORIGIN.as_str();
+    assert!(origin.starts_with("https://"));
+    assert!(!origin.ends_with('/'));
     for route in PUBLIC_ROUTES {
         assert_eq!(
             canonical_url_for_path(route.path),
-            format!("https://haydenfarrell.dev{}", route.path)
+            format!("{origin}{}", route.path)
         );
     }
-    assert_eq!(
-        social_image_url(),
-        "https://haydenfarrell.dev/images/project-default.svg"
-    );
+    assert_eq!(social_image_url(), format!("{origin}{SOCIAL_IMAGE_PATH}"));
 }
 
 #[test]
@@ -87,11 +87,14 @@ fn crawl_control_files_contain_only_the_public_production_routes() {
 
     assert!(robots.contains("User-agent: *"));
     assert!(robots.contains("Allow: /"));
-    assert!(robots.contains("Sitemap: https://haydenfarrell.dev/sitemap.xml"));
-    for path in ["/", "/projects", "/cv", "/legal", "/privacy"] {
-        assert!(sitemap.contains(&canonical_url_for_path(path)));
+    assert!(robots.contains(&format!(
+        "Sitemap: {}/sitemap.xml",
+        PRODUCTION_ORIGIN.as_str()
+    )));
+    for route in PUBLIC_ROUTES {
+        assert!(sitemap.contains(&canonical_url_for_path(route.path)));
     }
-    assert_eq!(sitemap.matches("<loc>").count(), 5);
+    assert_eq!(sitemap.matches("<loc>").count(), PUBLIC_ROUTES.len());
     assert!(!sitemap.contains("/legal-notice"));
     assert!(!sitemap.contains("not-found"));
 }
@@ -106,11 +109,27 @@ fn initial_document_references_a_controlled_favicon() {
 
 #[test]
 fn structured_data_uses_public_identity_without_contact_details() {
-    let json = structured_data_json();
+    let document: Value = serde_json::from_str(&structured_data_json()).unwrap();
+    let graph = document["@graph"].as_array().unwrap();
+    let person = graph
+        .iter()
+        .find(|entry| entry["@type"] == "Person")
+        .unwrap();
+    let website = graph
+        .iter()
+        .find(|entry| entry["@type"] == "WebSite")
+        .unwrap();
 
-    assert!(json.contains("\"@type\":\"Person\""));
-    assert!(json.contains("\"@type\":\"WebSite\""));
-    assert!(json.contains("\"sameAs\""));
-    assert!(!json.contains("haydenfarrell@outlook.com"));
-    assert!(json.contains("\"url\":\"https://haydenfarrell.dev\""));
+    assert!(
+        person["name"]
+            .as_str()
+            .is_some_and(|name| !name.trim().is_empty())
+    );
+    assert!(person.get("email").is_none());
+    assert!(person["sameAs"].as_array().is_some_and(|links| {
+        links
+            .iter()
+            .all(|link| link.as_str().is_some_and(|url| url.starts_with("https://")))
+    }));
+    assert_eq!(website["url"], PRODUCTION_ORIGIN.as_str());
 }

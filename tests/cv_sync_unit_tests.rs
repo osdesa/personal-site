@@ -1,6 +1,7 @@
 use personal_site::cv_sync::{
-    CvManifest, RemoteTag, parse_semantic_tag, select_highest_semantic_tag, validate_commit_sha,
-    validate_pdf, validate_tex,
+    CvManifest, GENERATED_CV_PATH, PDF_REPOSITORY_PATH, RemoteTag, TEX_REPOSITORY_PATH,
+    parse_semantic_tag, select_highest_semantic_tag, validate_commit_sha, validate_pdf,
+    validate_tex,
 };
 
 mod support;
@@ -81,9 +82,9 @@ fn manifest_rejects_unknown_or_untrusted_metadata() {
             "repository": "someone/else",
             "tag": "v1.0.0",
             "commit_sha": "{SHA_A}",
-            "source": {{"path":"public/cv/Hayden-Farrell-CV.tex","bytes":1,"sha256":"{}"}},
-            "pdf": {{"path":"public/cv/Hayden-Farrell-CV.pdf","bytes":1,"sha256":"{}"}},
-            "generated": {{"path":"src/generated_cv.rs","bytes":1,"sha256":"{}"}}
+            "source": {{"path":"{TEX_REPOSITORY_PATH}","bytes":1,"sha256":"{}"}},
+            "pdf": {{"path":"{PDF_REPOSITORY_PATH}","bytes":1,"sha256":"{}"}},
+            "generated": {{"path":"{GENERATED_CV_PATH}","bytes":1,"sha256":"{}"}}
         }}"#,
         "a".repeat(64),
         "b".repeat(64),

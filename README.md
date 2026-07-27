@@ -118,13 +118,20 @@ npm run test:browser:dist
 npm run test:performance
 ```
 
-Rust tests intentionally target stable logic: content integrity, unique identifiers,
-route metadata and content selection. CV parser, transport and transaction tests
-use a repository-owned example document and generated minimal PDF; one production
-bundle test retains the real-CV attachment to verify manifest hashes and exact
-regeneration. Browser tests serve the release-style Trunk bundle, use axe to scan
-every public and not-found route, and cover the 320px mobile menu, focus return,
-overflow and reduced-motion behaviour. Large generated HTML snapshots are avoided
+Rust tests intentionally target stable behaviour: content integrity, unique
+identifiers, route metadata, selection policy, presentation and transaction
+semantics. Parser, transport, synchronization and presentation tests use
+repository-owned sample CV data, generated minimal PDFs and neutral example
+repository identifiers. They do not assert current facts from the upstream CV
+or selected GitHub repositories. One production-bundle boundary verifies only
+that the checked-in source, PDF, generated module and manifest are internally
+consistent.
+
+Browser tests serve the release-style Trunk bundle, use axe to scan every public
+and not-found route, and cover metadata completeness, the 320px mobile menu,
+focus return, overflow and reduced-motion behaviour. Assertions target semantic
+and layout contracts without duplicating current CV wording, education history,
+project names or artifact filenames. Large generated HTML snapshots are avoided
 because they would be brittle without improving confidence.
 All Rust tests—including unit-style tests—live under `tests/`; source modules do
 not contain inline `#[cfg(test)]` sections.

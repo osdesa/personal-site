@@ -60,6 +60,12 @@ fixed branch and `create-pull-request` action update the existing PR instead of
 opening duplicates. Their workflow logs identify discovery, validation,
 generation and no-change outcomes without printing credentials.
 
+The project workflow formats the generated Rust catalogue before its read-only
+quality gate. This is a defensive orchestration step: the generator also emits
+rustfmt-compatible arrays, while workflow normalization prevents a future
+formatter or metadata-shape change from blocking the synchronization pull
+request on generated-code layout alone.
+
 ## Trusted auto-merge policy
 
 The workflows run only from trusted `main` code on a schedule or manual
