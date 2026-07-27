@@ -3,7 +3,9 @@ summary = "A personal website that auto populates information from parsing CV an
 status = "Completed"
 technologies = ["Rust", "Leptos", "WebAssembly", "GitHub Actions"]
 highlights = [
-  "Typed build-time content generation keeps credentials and remote parsing out of the browser.",
-  "Accessibility, deterministic tests, and release builds are enforced in continuous integration.",
+  "Full auto parsing of CV pulled from Github Repo and auto populated into static webpage.",
+  "Project based parsing of custom format for project info auto populated into website.",
+  "Automated deployment of website to Cloudflare pages using Github Actions.",
+  "Source of truth for project information is the CV and Github Repos, no need to manually update website.",
 ]
 show_repository = true
