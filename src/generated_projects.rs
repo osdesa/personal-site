@@ -5,13 +5,27 @@ use crate::projects::{Project, ProjectVisibility};
 /// Selected projects generated from the configured GitHub repositories.
 pub const PROJECTS: &[Project] = &[
     Project {
+        id: "osdesa-atlas",
+        repository: "osdesa/Atlas",
+        title: "Atlas",
+        summary: "Atlas is a modern C++ user-space scheduler for heterogeneous CPU/GPU work using Vulkan.",
+        visibility: ProjectVisibility::Public,
+        project_date: "2026-07-24",
+        status: Some("Active"),
+        technologies: &["C++", "Vulkan", "Catc2", "CMake"],
+        highlights: &["Cross platform build support allowing testing on Windows and Unix."],
+        image_url: "/images/project-default.svg",
+        repository_url: Some("https://github.com/osdesa/Atlas"),
+        demo_url: None,
+    },
+    Project {
         id: "osdesa-personal-site",
         repository: "osdesa/personal-site",
         title: "Personal Website",
         summary: "A personal website that auto populates information from parsing CV and Github Repos",
         visibility: ProjectVisibility::Public,
         project_date: "2026-07-16",
-        status: Some("Active"),
+        status: Some("Completed"),
         technologies: &["Rust", "Leptos", "WebAssembly", "GitHub Actions"],
         highlights: &[
             "Typed build-time content generation keeps credentials and remote parsing out of the browser.",
