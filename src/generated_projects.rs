@@ -13,7 +13,10 @@ pub const PROJECTS: &[Project] = &[
         project_date: "2026-07-24",
         status: Some("Active"),
         technologies: &["C++", "Vulkan", "Catch2", "CMake", "Doxygen"],
-        highlights: &["Cross platform build support allowing testing on Windows and Unix."],
+        highlights: &[
+            "Fully check task graph allowing custom tasks and dependencies to be created.",
+            "Kahn schedular to provide simple baseline results",
+        ],
         image_url: "/images/project-default.svg",
         repository_url: Some("https://github.com/osdesa/Atlas"),
         demo_url: None,
