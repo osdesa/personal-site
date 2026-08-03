@@ -36,7 +36,7 @@ jobs:
           shared-key: ci-${{ runner.os }}
 
       - name: Install Rust dependency auditor
-        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2
+        uses: taiki-e/install-action@6a1bd70eaac3c8bdf093356838d7ee09fda951cf # v2
         with:
           tool: cargo-audit
 
@@ -95,7 +95,7 @@ jobs:
         run: npm run test:scripts
 
       - name: Install Trunk
-        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2
+        uses: taiki-e/install-action@6a1bd70eaac3c8bdf093356838d7ee09fda951cf # v2
         with:
           tool: trunk@0.21.14
 
