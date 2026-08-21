@@ -8,9 +8,9 @@ use crate::cv::{
 };
 
 /// Upstream semantic tag used to generate [`CV`].
-pub const SOURCE_TAG: &str = "v1.0.2";
+pub const SOURCE_TAG: &str = "v1.1.0";
 /// Immutable upstream commit used to generate [`CV`].
-pub const SOURCE_COMMIT_SHA: &str = "4725b3f0f5395d901851fc8cf815ea2936e6e6ce";
+pub const SOURCE_COMMIT_SHA: &str = "9af13c8a6b533acaf77b39bd4d5a4c62918e80bc";
 
 /// CV data validated and generated from the synchronized LaTeX source.
 #[rustfmt::skip]
@@ -23,7 +23,7 @@ pub static CV: Cv<'static> = Cv {
         social_links: Cow::Borrowed(&[
             SocialLink {
                 platform: SocialPlatform::LinkedIn,
-                url: Cow::Borrowed("https://linkedin.com/in/..."),
+                url: Cow::Borrowed("https://www.linkedin.com/in/haydenfarrell1/"),
                 label: RichText {
                     nodes: Cow::Borrowed(&[
                         Inline::Underline(RichText {
@@ -70,7 +70,7 @@ pub static CV: Cv<'static> = Cv {
             },
             qualification: RichText {
                 nodes: Cow::Borrowed(&[
-                    Inline::Text(Cow::Borrowed("BSc Computer Science with a Year in Industry (Predicted First-Class Honours)")),
+                    Inline::Text(Cow::Borrowed("BSc Computer Science with a Year in Industry (Predicted First-Class Honours avg. 75%)")),
                 ]),
             },
             location: Location {
@@ -119,7 +119,7 @@ pub static CV: Cv<'static> = Cv {
         Experience {
             role: RichText {
                 nodes: Cow::Borrowed(&[
-                    Inline::Text(Cow::Borrowed("Software Engineer part time")),
+                    Inline::Text(Cow::Borrowed("Part-Time Software Engineer")),
                 ]),
             },
             organisation: RichText {
@@ -141,22 +141,17 @@ pub static CV: Cv<'static> = Cv {
             highlights: Cow::Borrowed(&[
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("One of only three undergraduate software engineers offered a part-time role while returning to university")),
+                        Inline::Text(Cow::Borrowed("Selected as one of three undergraduate software engineers to continue at Leonardo part-time while completing my degree")),
                     ]),
                 },
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Developing safety-critical real-time software remotely as part of an Agile engineering team while completing my degree")),
+                        Inline::Text(Cow::Borrowed("Develop safety-critical, real-time software remotely within an Agile engineering team alongside full-time university study")),
                     ]),
                 },
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Balancing both university and work commitments to ensure deadlines are met")),
-                    ]),
-                },
-                RichText {
-                    nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Maintain and monitor Jenkins CI pipelines to ensure reliable build and test execution alongside ongoing software development.")),
+                        Inline::Text(Cow::Borrowed("Maintain and monitor Jenkins CI pipelines, supporting reliable automated build and test execution across ongoing development")),
                     ]),
                 },
             ]),
@@ -189,27 +184,27 @@ pub static CV: Cv<'static> = Cv {
             highlights: Cow::Borrowed(&[
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Developed and maintained safety-critical real-time software within an Agile engineering team following DO-178C development practices")),
+                        Inline::Text(Cow::Borrowed("Developed and maintained safety-critical, real-time embedded software within an Agile engineering team, following DO-178C development practices")),
                     ]),
                 },
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Led the design and implementation of a synthetic testing framework in C++ for complex embedded software, reducing dependency on hardware integration during development.")),
+                        Inline::Text(Cow::Borrowed("Led the design and implementation of a C++ synthetic testing framework, reducing integration time by over 50% and enabling significantly more accurate project time estimates")),
                     ]),
                 },
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Led design workshops with over 10 engineers including principal and lead software engineers to get stakeholder requirements and feedback on software design")),
+                        Inline::Text(Cow::Borrowed("Led requirements and design workshops with 10+ engineers, including principal and lead engineers, to gather stakeholder needs and refine the software design")),
                     ]),
                 },
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Developed a custom test application used by over 10 engineers across teams to allow for quick developer testing of a complex engineering system")),
+                        Inline::Text(Cow::Borrowed("Built a custom test application adopted by 30+ engineers across teams, enabling hardware-in-the-loop testing of complex systems")),
                     ]),
                 },
                 RichText {
                     nodes: Cow::Borrowed(&[
-                        Inline::Text(Cow::Borrowed("Created a custom tool to allow the visualisation of large amounts of realtime mathematical data to allow for quick analysis of complex engineering systems")),
+                        Inline::Text(Cow::Borrowed("Created a tool to visualise ultra-high-volume, real-time IQ data, enabling analysis of end to end system behaviour")),
                     ]),
                 },
             ]),
@@ -299,7 +294,11 @@ pub static CV: Cv<'static> = Cv {
                 Cow::Borrowed("Python"),
                 Cow::Borrowed("CMake"),
             ]),
-            period: None,
+            period: Some(RichText {
+                nodes: Cow::Borrowed(&[
+                    Inline::Text(Cow::Borrowed("Oct. 2022 -- May 2023")),
+                ]),
+            }),
             highlights: Cow::Borrowed(&[
                 RichText {
                     nodes: Cow::Borrowed(&[
@@ -326,6 +325,7 @@ pub static CV: Cv<'static> = Cv {
                 Cow::Borrowed("C++"),
                 Cow::Borrowed("C"),
                 Cow::Borrowed("Python"),
+                Cow::Borrowed("Haskell"),
                 Cow::Borrowed("Java"),
                 Cow::Borrowed("Matlab"),
                 Cow::Borrowed("VHDL"),
